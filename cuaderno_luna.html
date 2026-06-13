@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>📓 Apuntes Luna Gallego · Análisis de Datos</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════ RESET ══════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#f0e6f6;font-family:'DM Sans',sans-serif}
+
+/* ══════════════════ SCENE ══════════════════ */
+.scene{
+  width:100vw;height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%,#fce4ec 0%,transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 70%,#e8d5f5 0%,transparent 60%),
+    linear-gradient(135deg,#f8eef8 0%,#fce8f3 50%,#ede0f7 100%);
+  position:relative;overflow:hidden;
+}
+
+/* Decorative floating shapes */
+.deco{position:absolute;pointer-events:none;opacity:.18;font-size:2.5rem;animation:float 6s ease-in-out infinite}
+.deco:nth-child(1){top:8%;left:5%;animation-delay:0s}
+.deco:nth-child(2){top:15%;right:8%;animation-delay:1.5s;font-size:2rem}
+.deco:nth-child(3){bottom:12%;left:10%;animation-delay:3s;font-size:1.8rem}
+.deco:nth-child(4){bottom:20%;right:6%;animation-delay:4.5s}
+.deco:nth-child(5){top:45%;left:3%;animation-delay:2s;font-size:1.5rem}
+.deco:nth-child(6){top:40%;right:4%;animation-delay:3.5s;font-size:1.5rem}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-12px) rotate(5deg)}}
+
+/* ══════════════════ NAV ══════════════════ */
+.topbar{position:absolute;top:14px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:12px;z-index:300;flex-wrap:wrap;padding:0 12px}
+.nbtn{
+  background:rgba(255,255,255,.85);
+  border:2px solid #e8a0c0;
+  color:#c2185b;
+  font-family:'Caveat',cursive;font-size:1.05rem;font-weight:700;
+  padding:6px 20px;border-radius:50px;cursor:pointer;
+  backdrop-filter:blur(8px);transition:.2s;
+  box-shadow:0 2px 10px rgba(194,24,91,.15),3px 3px 0 #f48fb1;
+}
+.nbtn:hover{background:#fce4ec;transform:translateY(-2px);box-shadow:0 4px 14px rgba(194,24,91,.2),3px 3px 0 #f48fb1}
+.nbtn:disabled{opacity:.3;cursor:default;transform:none;box-shadow:none}
+.pctr{
+  font-family:'Caveat',cursive;font-size:.95rem;color:#880e4f;
+  background:rgba(255,255,255,.9);padding:5px 16px;border-radius:50px;
+  border:2px solid #f48fb1;backdrop-filter:blur(6px);min-width:120px;text-align:center;
+  box-shadow:2px 2px 0 #f8bbd0;
+}
+
+/* Progress */
+.pbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);width:280px;height:5px;background:rgba(255,255,255,.5);border-radius:10px;overflow:hidden;z-index:200}
+.pfill{height:100%;background:linear-gradient(90deg,#f06292,#ab47bc,#ec407a);border-radius:10px;transition:width .4s}
+.hint{position:absolute;bottom:24px;right:18px;font-family:'Patrick Hand',cursive;font-size:.7rem;color:rgba(136,14,79,.4)}
+
+/* ══════════════════ NOTEBOOK STAGE ══════════════════ */
+.stage{position:relative;width:980px;height:632px}
+.bshadow{position:absolute;bottom:-28px;left:6%;right:6%;height:30px;background:radial-gradient(ellipse,rgba(136,14,79,.25) 0%,transparent 70%);filter:blur(8px)}
+
+/* ══════════════════ COVER (closed state) ══════════════════ */
+.cover-wrap{
+  position:absolute;inset:0;z-index:100;
+  display:flex;align-items:stretch;
+  border-radius:14px;
+  box-shadow:0 12px 40px rgba(136,14,79,.3),0 4px 12px rgba(0,0,0,.1);
+  transition:all .8s cubic-bezier(.645,.045,.355,1);
+  transform-origin:center center;
+  transform-style:preserve-3d;
+  perspective:1200px;
+}
+.cover-wrap.opening{
+  animation:openBook .9s cubic-bezier(.645,.045,.355,1) forwards;
+}
+.cover-wrap.closed-end{
+  animation:closeBook .9s cubic-bezier(.645,.045,.355,1) forwards;
+}
+@keyframes openBook{
+  0%{transform:scaleX(1);opacity:1}
+  40%{transform:scaleX(0.02) rotateY(-5deg);opacity:.8}
+  100%{transform:scaleX(0) rotateY(-90deg);opacity:0;pointer-events:none}
+}
+@keyframes closeBook{
+  0%{transform:scaleX(0) rotateY(-90deg);opacity:0}
+  60%{transform:scaleX(0.02) rotateY(-5deg);opacity:.8}
+  100%{transform:scaleX(1);opacity:1;pointer-events:all}
+}
+.cover-wrap.hidden{display:none}
+
+/* Front cover */
+.cover-front{
+  flex:1;
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 40%,rgba(252,228,236,.9) 0%,transparent 70%),
+    linear-gradient(135deg,#e91e8c 0%,#9c27b0 40%,#880e4f 100%);
+  border-radius:14px;
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 28px;
+}
+.cover-front::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E");
+}
+.cover-spine{
+  width:34px;
+  background:linear-gradient(180deg,#6a0f4e,#9c1b7a,#6a0f4e);
+  border-radius:14px 0 0 14px;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-around;
+  padding:20px 0;
+  box-shadow:inset -2px 0 8px rgba(0,0,0,.2),inset 2px 0 6px rgba(255,255,255,.05);
+}
+.cover-coil{
+  width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle,#f8bbd0 30%,#e91e8c 30%,#e91e8c 60%,#6a0f4e 60%);
+  box-shadow:0 2px 4px rgba(0,0,0,.3);flex-shrink:0;
+}
+
+/* Cover content */
+.cover-title{
+  font-family:'Caveat',cursive;font-size:1.9rem;font-weight:700;
+  color:white;text-align:center;line-height:1.2;
+  text-shadow:2px 2px 8px rgba(0,0,0,.25);
+  margin-bottom:10px;
+}
+.cover-sub{
+  font-family:'Patrick Hand',cursive;font-size:1.1rem;
+  color:rgba(255,255,255,.88);text-align:center;
+  margin-bottom:16px;line-height:1.4;
+}
+.cover-by{
+  font-family:'Playfair Display',serif;font-style:italic;font-size:1.2rem;
+  color:#fce4ec;text-shadow:1px 1px 4px rgba(0,0,0,.2);
+}
+.cover-deco-flowers{
+  position:absolute;font-size:3.5rem;opacity:.2;
+}
+.open-btn{
+  margin-top:18px;
+  background:rgba(255,255,255,.2);
+  border:2px solid rgba(255,255,255,.5);
+  color:white;font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;
+  padding:8px 24px;border-radius:50px;cursor:pointer;
+  backdrop-filter:blur(8px);transition:.2s;
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
+}
+.open-btn:hover{background:rgba(255,255,255,.35);transform:scale(1.04)}
+
+/* Back cover (shown at end) */
+.back-cover{
+  position:absolute;inset:0;z-index:99;display:none;
+  border-radius:14px;overflow:hidden;
+  background:linear-gradient(135deg,#880e4f 0%,#6a1b9a 100%);
+  box-shadow:0 12px 40px rgba(136,14,79,.3);
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:40px;text-align:center;
+}
+.back-cover.visible{display:flex}
+.back-cover-text{
+  font-family:'Caveat',cursive;font-size:2rem;font-weight:700;
+  color:rgba(255,255,255,.9);margin-bottom:14px;
+}
+.back-cover-sub{
+  font-family:'Patrick Hand',cursive;font-size:1.05rem;
+  color:rgba(255,255,255,.7);line-height:1.6;max-width:340px;
+}
+.close-btn{
+  margin-top:22px;
+  background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.4);
+  color:white;font-family:'Caveat',cursive;font-size:1.05rem;font-weight:700;
+  padding:8px 22px;border-radius:50px;cursor:pointer;transition:.2s;
+}
+.close-btn:hover{background:rgba(255,255,255,.28)}
+
+/* ══════════════════ OPEN BOOK ══════════════════ */
+.book{
+  position:absolute;inset:0;
+  display:flex;align-items:stretch;
+  z-index:1;opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.book.visible{opacity:1;pointer-events:all}
+
+.HL,.HR{width:calc(50% - 17px);height:100%;position:relative;overflow:hidden}
+.HL{border-radius:14px 0 0 14px;box-shadow:-4px 0 20px rgba(136,14,79,.2)}
+.HR{border-radius:0 14px 14px 0;box-shadow:4px 0 20px rgba(136,14,79,.15)}
+
+/* Paper texture */
+.paper{
+  position:absolute;inset:0;
+  padding:22px 20px 24px 62px; /* big left margin */
+  overflow:hidden;
+  background-color:#fffcfe;
+  background-image:
+    linear-gradient(rgba(233,30,140,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(233,30,140,.05) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+/* Left margin red line */
+.HL .paper::before{
+  content:'';position:absolute;left:48px;top:0;bottom:0;
+  width:2px;background:rgba(240,98,146,.35);
+}
+/* Right page margin line */
+.HR .paper::before{
+  content:'';position:absolute;right:46px;top:0;bottom:0;
+  width:2px;background:rgba(240,98,146,.25);
+}
+/* Dog ear */
+.HR .paper::after{
+  content:'';position:absolute;top:0;right:0;
+  width:0;height:0;border-style:solid;
+  border-width:0 28px 28px 0;
+  border-color:transparent #f8bbd0 transparent transparent;z-index:8;
+}
+.pgn{
+  position:absolute;bottom:12px;
+  font-family:'Caveat',cursive;font-size:.82rem;color:rgba(136,14,79,.4);
+}
+.HL .pgn{right:16px}.HR .pgn{left:16px}
+
+/* Spine */
+.spine{
+  width:34px;flex-shrink:0;
+  background:linear-gradient(180deg,#880e4f,#c2185b,#ad1457,#c2185b,#880e4f);
+  z-index:20;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-around;
+  padding:18px 0;
+  box-shadow:inset -3px 0 6px rgba(0,0,0,.2),inset 3px 0 6px rgba(0,0,0,.15);
+}
+.coil{
+  width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle,#fce4ec 25%,#e91e8c 25%,#e91e8c 60%,#880e4f 60%);
+  box-shadow:0 1px 4px rgba(0,0,0,.35);flex-shrink:0;
+}
+
+/* Flip */
+.flip{position:absolute;height:100%;width:calc(50% - 17px);top:0;z-index:50;transform-style:preserve-3d;pointer-events:none;display:none}
+.flip.gf{left:calc(50% + 17px);transform-origin:left center;animation:gf .7s cubic-bezier(.645,.045,.355,1) forwards;display:block}
+.flip.gb{left:0;transform-origin:right center;animation:gb .7s cubic-bezier(.645,.045,.355,1) forwards;display:block}
+.ff,.fb{
+  position:absolute;inset:0;backface-visibility:hidden;overflow:hidden;
+  background-color:#fffcfe;
+  background-image:linear-gradient(rgba(233,30,140,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(233,30,140,.05) 1px,transparent 1px);
+  background-size:24px 24px;
+  padding:22px 20px 24px 62px;
+}
+.ff{transform:rotateY(0deg)}
+.fb{transform:rotateY(180deg)}
+.ff::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,transparent 55%,rgba(136,14,79,.08) 100%);pointer-events:none}
+@keyframes gf{0%{transform:rotateY(0deg)}45%{transform:rotateY(-95deg);box-shadow:-20px 0 40px rgba(136,14,79,.3)}100%{transform:rotateY(-180deg)}}
+@keyframes gb{0%{transform:rotateY(-180deg)}45%{transform:rotateY(-85deg);box-shadow:20px 0 40px rgba(136,14,79,.3)}100%{transform:rotateY(0deg)}}
+
+/* ══════════════════ PALETTES ══════════════════ */
+.pA{--a:#9c27b0;--b:#ce93d8;--c:#f3e5f5;--d:#6a1b9a;--e:#faf5ff;--ac:#e1bee7}
+.pB{--a:#e91e63;--b:#f48fb1;--c:#fce4ec;--d:#880e4f;--e:#fff0f6;--ac:#f8bbd0}
+.pC{--a:#00897b;--b:#4db6ac;--c:#e0f2f1;--d:#00695c;--e:#f0fdf9;--ac:#80cbc4}
+.pD{--a:#f06292;--b:#f48fb1;--c:#fce4ec;--d:#c2185b;--e:#fff0f6;--ac:#f8bbd0}
+.pE{--a:#8e24aa;--b:#ba68c8;--c:#f3e5f5;--d:#6a1b9a;--e:#faf5ff;--ac:#ce93d8}
+.pF{--a:#7b1fa2;--b:#ab47bc;--c:#f3e5f5;--d:#4a148c;--e:#faf5ff;--ac:#ce93d8}
+.pG{--a:#ad1457;--b:#e91e63;--c:#fce4ec;--d:#880e4f;--e:#fff0f6;--ac:#f8bbd0}
+.pH{--a:#00796b;--b:#26a69a;--c:#e0f2f1;--d:#004d40;--e:#e8f5e9;--ac:#80cbc4}
+
+/* ══════════════════ CONTENT STYLES ══════════════════ */
+.wt{
+  display:inline-block;padding:2px 10px;border-radius:50px;
+  font-family:'Caveat',cursive;font-size:.68rem;font-weight:700;
+  letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px;
+  background:var(--c);color:var(--d);border:1.5px solid var(--ac);
+}
+.stg{
+  display:inline-block;background:var(--a);color:#fff;
+  font-family:'Patrick Hand',cursive;font-size:.6rem;
+  padding:1px 8px;border-radius:50px;margin-bottom:3px;
+}
+.h1{
+  font-family:'Caveat',cursive;font-size:1.45rem;font-weight:700;
+  color:var(--d);line-height:1.05;margin-bottom:3px;
+}
+.h2{font-family:'Caveat',cursive;font-size:1rem;font-weight:700;color:var(--a);margin:6px 0 3px;display:block}
+.h3{font-family:'Caveat',cursive;font-size:.85rem;font-weight:600;color:var(--b);margin:4px 0 2px;display:block}
+.ub{
+  display:block;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,var(--a),var(--b));
+  width:120px;margin-bottom:5px;opacity:.6;
+}
+.bd{font-family:'Patrick Hand',cursive;font-size:.72rem;line-height:1.45;color:#2d1b35;margin-bottom:3px}
+.sm{font-family:'Patrick Hand',cursive;font-size:.65rem;line-height:1.35;color:#3d2b45}
+
+/* Bullet list */
+.bl{list-style:none;padding:0;margin:4px 0}
+.bl li{
+  font-family:'Patrick Hand',cursive;font-size:.7rem;line-height:1.4;
+  color:#2d1b35;padding-left:15px;position:relative;margin-bottom:1px;
+}
+.bl li::before{
+  content:'🌸';position:absolute;left:0;font-size:.55rem;top:4px;
+}
+
+/* Boxes */
+.bx{
+  border:1.5px solid var(--b);border-radius:9px;
+  padding:6px 9px;margin:3px 0;
+  background:var(--c);position:relative;
+}
+.bxt{
+  font-family:'Caveat',cursive;font-size:.7rem;font-weight:700;
+  color:var(--d);background:var(--e);
+  padding:0 4px;position:absolute;top:-8px;left:8px;white-space:nowrap;
+}
+
+/* Answer box */
+.ab{
+  border-left:3px solid var(--ac);
+  padding:3px 6px 3px 8px;margin:2px 0;
+  background:rgba(255,255,255,.55);border-radius:0 6px 6px 0;
+}
+.abl{
+  font-family:'Caveat',cursive;font-size:.7rem;font-weight:700;
+  color:var(--a);display:block;margin-bottom:1px;
+}
+.abb{font-family:'Patrick Hand',cursive;font-size:.65rem;line-height:1.35;color:#2d1b35}
+
+/* Code block - proper IDE style */
+.code-wrap{
+  margin:4px 0;border-radius:7px;overflow:hidden;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+.code-header{
+  background:#2d1b35;padding:3px 8px;
+  display:flex;align-items:center;gap:4px;
+}
+.code-dot{width:8px;height:8px;border-radius:50%}
+.code-dot.r{background:#ff5f57}
+.code-dot.y{background:#febc2e}
+.code-dot.g{background:#28c840}
+.code-lang{
+  font-family:'DM Sans',sans-serif;font-size:.55rem;
+  color:rgba(255,255,255,.4);margin-left:auto;letter-spacing:.4px;
+}
+.code-body{
+  background:#1e1128;
+  padding:6px 9px;
+  font-family:'Courier New',monospace;font-size:.62rem;
+  color:#e1bee7;line-height:1.45;overflow-x:hidden;
+  white-space:pre-wrap;word-break:break-word;
+}
+.kw{color:#f06292;font-weight:600}
+.fn{color:#ce93d8}
+.st{color:#a5d6a7}
+.cm{color:#757575;font-style:italic}
+.nm{color:#ffcc80}
+.op{color:#80cbc4}
+
+/* Quote */
+.qt{
+  border-left:3px solid var(--b);background:var(--c);
+  padding:4px 8px;border-radius:0 7px 7px 0;
+  margin:3px 0;font-family:'Patrick Hand',cursive;
+  font-style:italic;font-size:.68rem;color:#2d1b35;line-height:1.4;
+}
+
+/* Formula */
+.fm{
+  background:#fff0f6;border:1.5px dashed var(--b);
+  border-radius:6px;padding:4px 8px;
+  font-family:'Courier New',monospace;font-size:.65rem;
+  text-align:center;margin:3px 0;color:#2d1b35;
+}
+
+/* Sticky note */
+.st{
+  background:#fff9c4;border:1.5px solid #f9a825;
+  border-radius:3px 8px 8px 3px;padding:4px 7px;
+  margin:3px 0;font-family:'Patrick Hand',cursive;
+  font-size:.65rem;color:#1c1033;line-height:1.35;
+  box-shadow:2px 3px 6px rgba(0,0,0,.1);
+  position:relative;
+}
+.st::before{content:'📌';position:absolute;top:-10px;left:6px;font-size:.85rem}
+
+/* Chip */
+.ch{
+  display:inline-block;font-family:'Caveat',cursive;font-size:.65rem;
+  font-weight:700;padding:1px 7px;border-radius:50px;
+  margin:1px 1px 1px 0;background:var(--a);color:#fff;
+}
+.ch2{background:var(--b)}
+
+/* Table */
+.tb{width:100%;border-collapse:collapse;margin:3px 0;font-family:'Patrick Hand',cursive;font-size:.62rem}
+.tb th{background:var(--a);color:#fff;padding:2px 5px;text-align:left;font-family:'Caveat',cursive;font-size:.68rem}
+.tb td{padding:2px 5px;border-bottom:1px solid var(--c);line-height:1.25;color:#2d1b35}
+.tb tr:nth-child(even) td{background:rgba(255,255,255,.5)}
+
+/* Divider */
+.dv{border:none;border-top:1.5px dashed var(--ac);margin:4px 0;opacity:.55}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:3px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin:3px 0}
+
+/* Sticker */
+.stk{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--c);border:1.5px solid var(--b);
+  font-size:11px;float:right;margin:-2px 0 0 4px;
+  box-shadow:1px 2px 5px rgba(0,0,0,.12);
+}
+
+/* Cover special */
+.cvbig{font-family:'Caveat',cursive;font-size:2.1rem;font-weight:700;color:var(--d);line-height:1}
+.auth{display:inline-block;background:var(--c);color:var(--d);font-family:'Patrick Hand',cursive;font-size:.72rem;padding:3px 12px;border-radius:50px;border:2px solid var(--ac);margin-top:3px}
+
+/* Section questions style */
+.q-block{background:rgba(255,255,255,.6);border-radius:7px;padding:4px 7px;margin:2px 0;border:1.5px solid var(--ac)}
+.q-label{font-family:'Caveat',cursive;font-size:.72rem;font-weight:700;color:var(--a);display:flex;align-items:center;gap:3px;margin-bottom:1px}
+.q-ans{font-family:'Patrick Hand',cursive;font-size:.66rem;line-height:1.35;color:#2d1b35}
+
+@media(max-width:1020px){.stage{width:98vw;height:calc(98vw*.645)}}
+</style>
+</head>
+<body>
+
+<!-- Floating deco -->
+<div class="scene">
+<div class="deco">🌸</div>
+<div class="deco">🦋</div>
+<div class="deco">✨</div>
+<div class="deco">🌺</div>
+<div class="deco">💫</div>
+<div class="deco">🌷</div>
+
+<!-- TOP NAV (hidden when cover visible) -->
+<div class="topbar" id="topbar" style="display:none">
+  <button class="nbtn" id="bPrev" onclick="flip(-1)">← Anterior</button>
+  <div class="pctr" id="pctr">Págs 1–2</div>
+  <button class="nbtn" id="bNext" onclick="flip(1)">Siguiente →</button>
+</div>
+
+<div class="stage">
+  <div class="bshadow"></div>
+
+  <!-- ══ CLOSED COVER (front) ══ -->
+  <div class="cover-wrap" id="coverWrap">
+    <div class="cover-spine">
+      <div class="cover-coil"></div><div class="cover-coil"></div>
+      <div class="cover-coil"></div><div class="cover-coil"></div>
+      <div class="cover-coil"></div><div class="cover-coil"></div>
+      <div class="cover-coil"></div><div class="cover-coil"></div>
+      <div class="cover-coil"></div><div class="cover-coil"></div>
+      <div class="cover-coil"></div><div class="cover-coil"></div>
+      <div class="cover-coil"></div><div class="cover-coil"></div>
+    </div>
+    <div class="cover-front">
+      <!-- SVG decoration -->
+      <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 700 632" xmlns="http://www.w3.org/2000/svg">
+        <!-- Corner flowers -->
+        <text x="30" y="70" font-size="52" opacity=".25" fill="white">🌸</text>
+        <text x="580" y="75" font-size="44" opacity=".2" fill="white">🦋</text>
+        <text x="25" y="580" font-size="40" opacity=".2" fill="white">🌺</text>
+        <text x="590" y="590" font-size="48" opacity=".22" fill="white">✨</text>
+        <!-- Dots pattern -->
+        <circle cx="120" cy="120" r="3" fill="white" opacity=".12"/>
+        <circle cx="160" cy="100" r="2" fill="white" opacity=".1"/>
+        <circle cx="560" cy="500" r="3" fill="white" opacity=".1"/>
+        <circle cx="600" cy="520" r="2" fill="white" opacity=".08"/>
+        <!-- Wavy line top -->
+        <path d="M80,520 Q180,500 280,520 Q380,540 480,520 Q580,500 660,520" stroke="rgba(255,255,255,.12)" stroke-width="2" fill="none"/>
+        <path d="M80,530 Q180,510 280,530 Q380,550 480,530 Q580,510 660,530" stroke="rgba(255,255,255,.08)" stroke-width="1.5" fill="none"/>
+        <!-- Small hearts -->
+        <text x="200" y="180" font-size="16" opacity=".18" fill="white">♡</text>
+        <text x="490" y="200" font-size="14" opacity=".15" fill="white">♡</text>
+        <text x="350" y="560" font-size="18" opacity=".2" fill="white">♡</text>
+      </svg>
+
+      <div style="text-align:center;position:relative;z-index:2">
+        <div style="font-size:2.8rem;margin-bottom:8px">📓</div>
+        <div class="cover-title">Apuntes<br>Adquisición, Análisis y<br>Procesamiento de Datos</div>
+        <div class="cover-sub">Ingeniería en IA · UCB Santa Cruz · 2026</div>
+        <div style="width:200px;height:2px;background:rgba(255,255,255,.4);margin:12px auto;border-radius:2px"></div>
+        <div class="cover-by">by Luna Gallego 🌸</div>
+        <button class="open-btn" onclick="openBook()">Abrir cuaderno →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BACK COVER (end) ══ -->
+  <div class="back-cover" id="backCover">
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 980 632">
+      <text x="60" y="100" font-size="60" opacity=".15" fill="white">🌸</text>
+      <text x="820" y="120" font-size="50" opacity=".12" fill="white">🦋</text>
+      <text x="50" y="550" font-size="44" opacity=".12" fill="white">✨</text>
+      <text x="840" y="560" font-size="56" opacity=".15" fill="white">🌺</text>
+      <path d="M100,316 Q490,260 880,316" stroke="rgba(255,255,255,.08)" stroke-width="2" fill="none"/>
+    </svg>
+    <div class="back-cover-text">¡Cuaderno completado! 🎉</div>
+    <div style="font-size:3rem;margin:10px 0">🌸 ✨ 🦋</div>
+    <div class="back-cover-sub">
+      Un semestre completo de Análisis de Datos.<br>
+      Cada página, un paso más hacia ser<br>
+      una <em>Data Scientist</em> increíble 💜
+    </div>
+    <div style="font-family:'Caveat',cursive;font-size:1.2rem;color:rgba(255,255,255,.6);margin-top:12px">— Luna Gallego · UCB Santa Cruz</div>
+    <button class="close-btn" onclick="closeBook()">← Cerrar cuaderno</button>
+  </div>
+
+  <!-- ══ OPEN BOOK ══ -->
+  <div class="book" id="book" style="perspective:2400px">
+    <div class="HL" id="HL"><div class="paper pA" id="PL"></div></div>
+    <div class="spine" id="spine"></div>
+    <div class="HR" id="HR"><div class="paper pA" id="PR"></div></div>
+    <div class="flip" id="FP"><div class="ff" id="FF"></div><div class="fb" id="FB"></div></div>
+  </div>
+</div>
+
+<div class="pbar" id="progressBar" style="display:none"><div class="pfill" id="PF"></div></div>
+<div class="hint" id="hintText" style="display:none">← → teclas para navegar</div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   PAGE DATA
+══════════════════════════════════════════ */
+const P=[
+{p:'pA',n:1,h:`
+<div class="pA">
+  <div class="stg pA">📓 UCB Santa Cruz · 2026</div>
+  <div class="h1 pA" style="font-size:2rem">Adquisición, Análisis<br>y Procesamiento de Datos</div>
+  <div class="ub pA"></div>
+  <svg viewBox="0 0 380 82" width="380" height="82" style="display:block;margin:8px 0">
+    <rect x="0" y="8" width="42" height="52" rx="4" fill="#9c27b0" opacity=".8"/>
+    <rect x="46" y="20" width="42" height="40" rx="4" fill="#ce93d8" opacity=".8"/>
+    <rect x="92" y="4" width="42" height="56" rx="4" fill="#9c27b0" opacity=".8"/>
+    <rect x="138" y="15" width="42" height="44" rx="4" fill="#e91e63" opacity=".75"/>
+    <rect x="184" y="26" width="42" height="33" rx="4" fill="#ce93d8" opacity=".8"/>
+    <rect x="230" y="10" width="42" height="50" rx="4" fill="#9c27b0" opacity=".8"/>
+    <rect x="276" y="18" width="42" height="42" rx="4" fill="#e91e63" opacity=".75"/>
+    <rect x="322" y="6" width="55" height="54" rx="4" fill="#9c27b0" opacity=".8"/>
+    <line x1="0" y1="62" x2="380" y2="62" stroke="#e1bee7" stroke-width="1.5"/>
+    <text x="190" y="76" fill="#9c27b0" font-family="Patrick Hand" font-size="9" text-anchor="middle" opacity=".7">Semestre 3 · Ing. en IA · UCB Bolivia</text>
+  </svg>
+  <div class="bx pA">
+    <div class="bxt pA">🌸 Sobre mí</div>
+    <div style="margin-top:8px">
+      <div class="q-block pA">
+        <div class="q-ans">Hola! Soy <strong>Luna Gallego</strong>, colombiana viviendo en Bolivia, estudiante de 3er semestre de Ingeniería en Inteligencia Artificial en la Universidad Católica Boliviana "San Pablo" — Santa Cruz. Llegué con muchas ganas de aprender y este cuaderno es mi diario de todo lo que aprendo en clase. 🦋</div>
+      </div>
+    </div>
+  </div>
+  <div class="g2" style="margin-top:6px">
+    <div class="q-block pA"><span class="q-label pA">🎯 ¿Qué espero lograr?</span><div class="q-ans">Dominar el ciclo completo del análisis de datos: desde recolectar y limpiar hasta modelar y comunicar resultados con confianza.</div></div>
+    <div class="q-block pA"><span class="q-label pA">🚀 Mi mayor reto</span><div class="q-ans">Conectar la teoría estadística con la implementación real en Python. Hacer que los números "hablen" de forma significativa.</div></div>
+  </div>
+  <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
+    <span class="ch pA">🐍 Python</span><span class="ch pA ch2">🗄️ SQL</span>
+    <span class="ch pA">🧹 Limpieza</span><span class="ch pA ch2">📐 Estadística</span>
+    <span class="ch pA">⚙️ FeatEng</span><span class="ch pA ch2">🤖 ML</span>
+  </div>
+</div>
+<div class="pgn">1</div>
+`},
+{p:'pA',n:2,h:`
+<div class="pA">
+  <div class="wt pA">📋 Estructura del Semestre</div>
+  <div class="h1 pA">Mapa del cuaderno</div>
+  <div class="ub pA"></div>
+  <svg viewBox="0 0 380 58" width="100%" height="58" style="display:block;margin-bottom:6px">
+    <rect x="0" y="0" width="380" height="58" rx="6" fill="#f3e5f5"/>
+    <text x="190" y="13" fill="#6a1b9a" font-family="Caveat" font-size="9" font-weight="700" text-anchor="middle">Ruta de aprendizaje</text>
+    <rect x="5" y="18" width="50" height="16" rx="3" fill="#9c27b0"/><text x="30" y="29.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">📋 Docum.</text>
+    <text x="58" y="27" fill="#9c27b0" font-size="9" font-family="Patrick Hand">→</text>
+    <rect x="62" y="18" width="46" height="16" rx="3" fill="#ce93d8"/><text x="85" y="29.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🔄 Ciclo</text>
+    <text x="111" y="27" fill="#9c27b0" font-size="9" font-family="Patrick Hand">→</text>
+    <rect x="115" y="18" width="44" height="16" rx="3" fill="#9c27b0"/><text x="137" y="29.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🐍 Python</text>
+    <text x="162" y="27" fill="#9c27b0" font-size="9" font-family="Patrick Hand">→</text>
+    <rect x="166" y="18" width="46" height="16" rx="3" fill="#ce93d8"/><text x="189" y="29.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🌐 Recol.</text>
+    <text x="215" y="27" fill="#9c27b0" font-size="9" font-family="Patrick Hand">→</text>
+    <rect x="219" y="18" width="40" height="16" rx="3" fill="#9c27b0"/><text x="239" y="29.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🗄️ SQL</text>
+    <text x="262" y="27" fill="#9c27b0" font-size="9" font-family="Patrick Hand">→</text>
+    <rect x="266" y="18" width="44" height="16" rx="3" fill="#ce93d8"/><text x="288" y="29.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🧹 Limp.</text>
+    <text x="313" y="27" fill="#9c27b0" font-size="9" font-family="Patrick Hand">→</text>
+    <rect x="317" y="18" width="58" height="16" rx="3" fill="#6a1b9a"/><text x="346" y="29.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🤖 ML</text>
+    <text x="190" y="52" fill="#9c27b0" font-family="Patrick Hand" font-size="7.5" text-anchor="middle" opacity=".7">Cada tema: definición · código · preguntas · reflexión</text>
+  </svg>
+
+  <div class="q-block pA"><span class="q-label pA">📝 Cómo uso este cuaderno</span>
+    <div class="q-ans">En cada tema respondo las mismas preguntas: ¿Qué debería lograrse? · Problema planteado · Desarrollo con código · Desafíos encontrados · Cómo lo resolví · Qué aprendí · Cómo lo aplico en mi proyecto.</div>
+  </div>
+
+  <div class="bx pA" style="margin-top:6px">
+    <div class="bxt pA">🌸 Mi promesa a mí misma</div>
+    <div class="qt pA" style="margin-top:7px">"No importa cuántas veces me trabe con el código o no entienda un concepto a la primera. Cada error es una lección. Voy a ser una Data Scientist colombiana que conquista Bolivia y más." — Luna 🦋</div>
+  </div>
+
+  <div style="margin-top:8px">
+    <div class="st pA">💡 Este cuaderno es una mezcla de notas de clase + código real + reflexiones personales. ¡No es perfecto, es auténtico!</div>
+  </div>
+</div>
+<div class="pgn">2</div>
+`},
+{p:'pB',n:3,h:`
+<div class="pB">
+  <div class="stg pB">📋 DOCUMENTACIÓN · Diap. 1–3 🌸</div>
+  <div class="h1 pB">Estructura de un Proyecto</div>
+  <div class="ub pB"></div>
+
+  <div class="q-block pB"><span class="q-label pB">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Que cualquier proyecto de análisis sea <strong>reproducible, comprensible y comunicable</strong> — desde los datos brutos hasta las conclusiones finales. Sin documentación, el análisis más brillante queda atrapado en tu mente.</div>
+  </div>
+
+  <div class="g2">
+    <div class="bx pB">
+      <div class="bxt pB">1️⃣ Resumen Ejecutivo</div>
+      <ul class="bl pB" style="margin-top:7px">
+        <li>Propósito del proyecto, datos y metodología</li>
+        <li>¿Qué problema se abordó?</li>
+        <li>¿Qué se descubrió?</li>
+        <li>¿Cuál es el impacto del análisis?</li>
+      </ul>
+    </div>
+    <div class="bx pB">
+      <div class="bxt pB">2️⃣ Definición del Problema</div>
+      <ul class="bl pB" style="margin-top:7px">
+        <li>Descripción general del contexto</li>
+        <li>Preguntas de investigación</li>
+        <li>Hipótesis (si aplica)</li>
+        <li>Alcance y limitaciones</li>
+      </ul>
+    </div>
+    <div class="bx pB">
+      <div class="bxt pB">3️⃣ Descripción de Datos</div>
+      <ul class="bl pB" style="margin-top:7px">
+        <li>Fuentes: Kaggle, APIs, Scraping</li>
+        <li>Dimensiones: filas × columnas</li>
+        <li>Diccionario de variables</li>
+        <li>Muestras del dataset</li>
+      </ul>
+    </div>
+    <div class="bx pB">
+      <div class="bxt pB">4️⃣ Adquisición de Datos</div>
+      <ul class="bl pB" style="margin-top:7px">
+        <li>Métodos: local, scraping, API</li>
+        <li>Herramientas utilizadas</li>
+        <li>Problemas encontrados y soluciones</li>
+      </ul>
+    </div>
+  </div>
+
+  <svg viewBox="0 0 350 30" width="100%" height="30" style="display:block;margin-top:5px">
+    <rect x="0" y="0" width="350" height="30" rx="4" fill="#fce4ec" opacity=".6"/>
+    <text x="175" y="9" fill="#880e4f" font-family="Caveat" font-size="7.5" font-weight="700" text-anchor="middle">Flujo de documentación del proyecto</text>
+    <rect x="3" y="12" width="52" height="13" rx="3" fill="#e91e63"/><text x="29" y="21.5" fill="white" font-family="Patrick Hand" font-size="6" text-anchor="middle">1.Resumen</text>
+    <text x="57" y="19.5" fill="#e91e63" font-family="Patrick Hand" font-size="9">→</text>
+    <rect x="61" y="12" width="52" height="13" rx="3" fill="#f48fb1"/><text x="87" y="21.5" fill="white" font-family="Patrick Hand" font-size="6" text-anchor="middle">2.Problema</text>
+    <text x="115" y="19.5" fill="#e91e63" font-family="Patrick Hand" font-size="9">→</text>
+    <rect x="119" y="12" width="44" height="13" rx="3" fill="#e91e63"/><text x="141" y="21.5" fill="white" font-family="Patrick Hand" font-size="6" text-anchor="middle">3.Datos</text>
+    <text x="165" y="19.5" fill="#e91e63" font-family="Patrick Hand" font-size="9">→</text>
+    <rect x="169" y="12" width="48" height="13" rx="3" fill="#f48fb1"/><text x="193" y="21.5" fill="white" font-family="Patrick Hand" font-size="6" text-anchor="middle">4.Adquic.</text>
+    <text x="219" y="19.5" fill="#e91e63" font-family="Patrick Hand" font-size="9">→</text>
+    <rect x="223" y="12" width="120" height="13" rx="3" fill="#880e4f"/><text x="283" y="21.5" fill="white" font-family="Patrick Hand" font-size="6" text-anchor="middle">5–10. Análisis + Modelo + Cierre</text>
+  </svg>
+</div>
+<div class="pgn">3</div>
+`},
+{p:'pB',n:4,h:`
+<div class="pB">
+  <div class="wt pB">📋 Documentación · Diap. 4–7 · Secciones 5–10</div>
+  <div class="h1 pB">Secciones 5–10</div>
+  <div class="ub pB"></div>
+
+  <div class="g2">
+    <div class="bx pB"><div class="bxt pB">5️⃣ Preprocesamiento</div>
+      <ul class="bl pB" style="margin-top:6px"><li>Manejo de valores nulos</li><li>Normalización / estandarización</li><li>Codificación de categóricas</li><li>Filtrado de outliers</li></ul>
+    </div>
+    <div class="bx pB"><div class="bxt pB">6️⃣ EDA</div>
+      <ul class="bl pB" style="margin-top:6px"><li>Estadísticas descriptivas</li><li>Visualizaciones clave</li><li>Patrones principales</li></ul>
+    </div>
+    <div class="bx pB"><div class="bxt pB">7️⃣ Feature Engineering</div>
+      <ul class="bl pB" style="margin-top:6px"><li>Nuevas variables creadas</li><li>Razonamiento de cada transformación</li><li>Selección de atributos</li></ul>
+    </div>
+    <div class="bx pB"><div class="bxt pB">8️⃣ Modelado y Evaluación</div>
+      <ul class="bl pB" style="margin-top:6px"><li>Tipo de modelo usado</li><li>División train/test</li><li>Métricas · Cross-validation</li></ul>
+    </div>
+    <div class="bx pB"><div class="bxt pB">9️⃣ Hipótesis</div>
+      <ul class="bl pB" style="margin-top:6px"><li>H₀ y H₁ planteadas</li><li>Tipo de prueba estadística</li><li>Valor p y conclusión</li></ul>
+    </div>
+    <div class="bx pB"><div class="bxt pB">🔟 Conclusiones + Refs</div>
+      <ul class="bl pB" style="margin-top:6px"><li>Hallazgos clave</li><li>Relevancia · Propuestas</li><li>Datasets (URL) · Scripts</li></ul>
+    </div>
+  </div>
+
+  <hr class="dv pB">
+  <div class="h2 pB">✏️ Apuntes Técnicos · Documentación</div>
+  <div class="q-block pB"><span class="q-label pB">🧩 Problema planteado</span>
+    <div class="q-ans">¿Cómo organizar un proyecto de datos para que sea evaluable académica y profesionalmente? Sin estructura, el análisis más brillante se vuelve incomprensible para cualquier otra persona.</div>
+  </div>
+  <div class="q-block pB"><span class="q-label pB">⚠️ Desafíos / Dificultades</span>
+    <div class="q-ans">Distinguir Resumen Ejecutivo (qué y para qué) de Conclusiones (análisis profundo). Documentar en paralelo al proyecto, no al final.</div>
+  </div>
+  <div class="q-block pB"><span class="q-label pB">📚 Aprendizaje obtenido</span>
+    <div class="q-ans">Sin documentación no hay ciencia reproducible. El resumen ejecutivo es lo primero que lee cualquier evaluador: debe ser claro en ≤1 página y responder "¿por qué debería importarme esto?"</div>
+  </div>
+  <div class="q-block pB"><span class="q-label pB">🚀 ¿Cómo lo aplico?</span>
+    <div class="q-ans">Usaré las 10 secciones como checklist para mi proyecto semestral. Empiezo siempre definiendo el problema antes de tocar un solo dato.</div>
+  </div>
+</div>
+<div class="pgn">4</div>
+`},
+{p:'pB',n:5,h:`<div class="pB"><div class="wt pB">📋 Documentación · Mapa visual</div><div class="h1 pB">Flujo completo del proyecto</div><div class="ub pB"></div><svg viewBox="0 0 340 95" width="100%" height="82" style="display:block;margin-bottom:6px"><defs><marker id="arDoc" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e91e63"/></marker></defs><rect x="130" y="2" width="80" height="16" rx="4" fill="#e91e63"/><text x="170" y="13" fill="white" font-family="Caveat" font-size="9" font-weight="700" text-anchor="middle">1. Problema</text><line x1="170" y1="18" x2="170" y2="28" stroke="#e91e63" stroke-width="1.5" marker-end="url(#arDoc)"/><rect x="130" y="28" width="80" height="16" rx="4" fill="#f48fb1"/><text x="170" y="39" fill="white" font-family="Caveat" font-size="9" text-anchor="middle">2. Datos</text><line x1="170" y1="44" x2="170" y2="54" stroke="#e91e63" stroke-width="1.5" marker-end="url(#arDoc)"/><rect x="80" y="54" width="82" height="16" rx="4" fill="#e91e63"/><text x="121" y="65" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">3. Limpieza</text><rect x="178" y="54" width="82" height="16" rx="4" fill="#e91e63"/><text x="219" y="65" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">4. EDA</text><line x1="170" y1="70" x2="170" y2="80" stroke="#e91e63" stroke-width="1.5" marker-end="url(#arDoc)"/><rect x="80" y="80" width="82" height="16" rx="4" fill="#f48fb1"/><text x="121" y="91" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">5. FeatEng</text><rect x="178" y="80" width="82" height="16" rx="4" fill="#880e4f"/><text x="219" y="91" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">6. Modelo</text><text x="30" y="65" fill="#f48fb1" font-family="Caveat" font-size="8">documentar</text><text x="280" y="65" fill="#f48fb1" font-family="Caveat" font-size="8">en paralelo</text></svg><div class="g2"><div class="q-block pB"><span class="q-label pB">💡 Resumen Ejecutivo</span><div class="q-ans">La pagina mas importante. Responde: que hice, por que, que encontre. Sin tecnicismos. Debe entenderlo alguien no analista en menos de 1 pagina.</div></div><div class="q-block pB"><span class="q-label pB">🎯 Cuando documentar</span><div class="q-ans">SIEMPRE en paralelo. Al final pierdes las decisiones intermedias que son las mas valiosas de todo el proyecto.</div></div><div class="q-block pB"><span class="q-label pB">📌 Diccionario de variables</span><div class="q-ans">Tabla con: nombre columna, tipo de dato, descripcion, rango de valores. Imprescindible para que otros entiendan el dataset.</div></div><div class="q-block pB"><span class="q-label pB">🌸 Mi aprendizaje</span><div class="q-ans">Antes documentar me parecia un paso opcional. Ahora entiendo que sin documentacion no hay ciencia reproducible. Es la columna vertebral.</div></div></div><div class="st pB">Tip de Luna: Usa un Jupyter Notebook para documentar en tiempo real junto con el codigo. Un markdown bien organizado es suficiente!</div></div><div class="pgn">5</div>`},
+{p:'pC',n:6,h:`
+<div class="pC">
+  <div class="stg pC">🔄 CICLO DE VIDA DEL ANÁLISIS · Diap. 1–4 🌿</div>
+  <div class="h1 pC">¿Qué es la Ciencia de Datos?</div>
+  <div class="ub pC"></div>
+  <div class="q-block pC"><span class="q-label pC">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Comprender el flujo completo: desde datos crudos hasta decisiones de valor real en producción. Sin este marco, se trabaja sin rumbo y cada proyecto reinventa la rueda.</div>
+  </div>
+  <div class="qt pC">"La Ciencia de Datos implica limpiar, preparar y analizar datos para encontrar patrones, realizar modelado y generar resultados útiles que sirvan para tomar decisiones." — <strong>Wes McKinney</strong></div>
+  <div class="bx pC"><div class="bxt pC">📋 Diap. 2 · Contenido de la unidad</div>
+    <ul class="bl pC" style="margin-top:6px"><li>¿Qué es la Ciencia de Datos?</li><li>Importancia real y casos de uso</li><li>Ciclo de vida del análisis de datos</li></ul>
+  </div>
+  <div class="bx pC"><div class="bxt pC">⭐ Diap. 4 · Importancia</div>
+    <ul class="bl pC" style="margin-top:6px">
+      <li>Mejora los procesos de <strong>toma de decisiones</strong></li>
+      <li>Optimiza recursos y operaciones empresariales</li>
+      <li>Descubre patrones <strong>no evidentes</strong> a simple vista</li>
+      <li>Permite <strong>predecir comportamientos futuros</strong></li>
+    </ul>
+  </div>
+  <svg viewBox="0 0 350 44" width="100%" height="44" style="display:block;margin-top:5px">
+    <rect x="0" y="0" width="350" height="44" rx="4" fill="#e0f2f1" opacity=".6"/>
+    <text x="175" y="10" fill="#004d40" font-family="Caveat" font-size="8" font-weight="700" text-anchor="middle">Campos donde impacta la Ciencia de Datos</text>
+    <rect x="5" y="14" width="72" height="22" rx="3" fill="#00897b" opacity=".9"/>
+    <text x="41" y="24" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🏢 Empresas</text>
+    <text x="41" y="32" fill="#b2dfdb" font-family="Patrick Hand" font-size="5.5" text-anchor="middle">Optimización</text>
+    <rect x="82" y="14" width="72" height="22" rx="3" fill="#00695c" opacity=".9"/>
+    <text x="118" y="24" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🏥 Salud</text>
+    <text x="118" y="32" fill="#b2dfdb" font-family="Patrick Hand" font-size="5.5" text-anchor="middle">Diagnósticos IA</text>
+    <rect x="159" y="14" width="72" height="22" rx="3" fill="#00897b" opacity=".9"/>
+    <text x="195" y="24" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🏛️ Gobierno</text>
+    <text x="195" y="32" fill="#b2dfdb" font-family="Patrick Hand" font-size="5.5" text-anchor="middle">Políticas públicas</text>
+    <rect x="236" y="14" width="108" height="22" rx="3" fill="#00695c" opacity=".9"/>
+    <text x="290" y="24" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">📊 Fin. / IA / IoT</text>
+    <text x="290" y="32" fill="#b2dfdb" font-family="Patrick Hand" font-size="5.5" text-anchor="middle">Predicción riesgo</text>
+  </svg>
+</div>
+<div class="pgn">6</div>
+`},
+{p:'pC',n:7,h:`
+<div class="pC">
+  <div class="wt pC">🔄 Ciclo de Vida · Diap. 5–13</div>
+  <div class="h1 pC">Las 7 Etapas del Ciclo</div>
+  <div class="ub pC"></div>
+  <svg viewBox="0 0 350 105" width="100%" height="90" style="display:block;margin-bottom:5px">
+    <circle cx="175" cy="52" r="40" fill="none" stroke="#4db6ac" stroke-width="1.5" stroke-dasharray="4,3" opacity=".5"/>
+    <rect x="148" y="4" width="54" height="14" rx="3" fill="#00897b"/><text x="175" y="13.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">📥 Recolección</text>
+    <rect x="218" y="17" width="54" height="14" rx="3" fill="#00695c"/><text x="245" y="26.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🧹 Preparación</text>
+    <rect x="247" y="45" width="54" height="14" rx="3" fill="#00897b"/><text x="274" y="54.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🔍 EDA</text>
+    <rect x="218" y="74" width="54" height="14" rx="3" fill="#00695c"/><text x="245" y="83.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">❓ Hipótesis</text>
+    <rect x="148" y="88" width="54" height="14" rx="3" fill="#00897b"/><text x="175" y="97.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🤖 Modelado</text>
+    <rect x="78" y="74" width="60" height="14" rx="3" fill="#00695c"/><text x="108" y="83.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">📊 Visualización</text>
+    <rect x="48" y="45" width="62" height="14" rx="3" fill="#00897b"/><text x="79" y="54.5" fill="white" font-family="Patrick Hand" font-size="7" text-anchor="middle">🚀 Monitoreo</text>
+    <text x="175" y="49" fill="#00695c" font-family="Caveat" font-size="9" font-weight="700" text-anchor="middle">Ciclo</text>
+    <text x="175" y="60" fill="#4db6ac" font-family="Caveat" font-size="8" text-anchor="middle">Iterativo</text>
+  </svg>
+  <div class="bx pC"><div class="bxt pC">7. Diap. 12–13 · Implementación y Monitoreo</div>
+    <div class="bd pC" style="margin-top:5px">Integrar resultados en procesos reales y evaluar continuamente su impacto. Ej: monitorear un sistema de recomendaciones en producción.</div>
+  </div>
+  <hr class="dv pC">
+  <div class="q-block pC"><span class="q-label pC">💡 Solución al problema</span>
+    <div class="q-ans">Checklist antes de avanzar de etapa: ¿datos limpios? ¿hipótesis verificable? ¿métricas muestran modelo válido? El ciclo es <strong>iterativo</strong> — siempre puedo volver.</div>
+  </div>
+  <div class="q-block pC"><span class="q-label pC">🤔 ¿Qué aprendí realmente?</span>
+    <div class="q-ans">Pensaba que datos → gráfico → conclusión era todo. ¡Qué error! Cada etapa valida la anterior. Saltarse la limpieza es el peor error que puedes cometer.</div>
+  </div>
+</div>
+<div class="pgn">7</div>
+`},
+{p:'pC',n:8,h:`<div class="pC"><div class="wt pC">🔄 Ciclo de Vida · Ejemplo real + Reflexion</div><div class="h1 pC">El ciclo en la practica</div><div class="ub pC"></div><div class="q-block pC"><span class="q-label pC">🌀 Por que es iterativo</span><div class="q-ans">Al hacer EDA descubri que necesitaba mas limpieza. Al modelar vi que necesitaba nuevas features. El ciclo no es lineal, es en espiral. Y eso esta bien.</div></div><div class="bx pC"><div class="bxt pC">Ejemplo — codigo del ciclo completo</div><div class="code-wrap" style="margin-top:5px"><div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div><div class="code-body"><span class="cm"># 1. RECOLECCION</span>
+df = pd.<span class="fn">read_csv</span>(<span class="st">'datos.csv'</span>)
+<span class="cm"># 2. PREPARACION</span>
+df.<span class="fn">dropna</span>(subset=[<span class="st">'target'</span>], inplace=<span class="kw">True</span>)
+df.<span class="fn">fillna</span>(df.<span class="fn">median</span>(), inplace=<span class="kw">True</span>)
+<span class="cm"># 3. EDA</span>
+<span class="kw">print</span>(df.<span class="fn">describe</span>())
+df.<span class="fn">hist</span>(bins=<span class="nm">20</span>)
+<span class="cm"># 4. HIPOTESIS: mayor PIB = mayor felicidad?</span>
+<span class="cm"># 5. MODELADO</span>
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+model = <span class="fn">RandomForestClassifier</span>().<span class="fn">fit</span>(X_train, y_train)
+<span class="cm"># 6. VISUALIZACION</span>
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+plt.<span class="fn">bar</span>(features, importancias)
+plt.<span class="fn">show</span>()</div></div></div><div class="g2" style="margin-top:5px"><div class="q-block pC"><span class="q-label pC">🏁 Cuando esta listo</span><div class="q-ans">Cuando el modelo es suficientemente bueno, esta documentado y puedes explicarselo a alguien no tecnico.</div></div><div class="q-block pC"><span class="q-label pC">🌸 Aplicacion en mi proyecto</span><div class="q-ans">Usare el ciclo como roadmap con fechas asignadas a cada etapa. No avanzo sin completar la anterior con su checklist.</div></div></div></div><div class="pgn">8</div>`},
+{p:'pD',n:9,h:`
+<div class="pD">
+  <div class="stg pD">🐍 FUNDAMENTOS DE PYTHON · Diap. 1–4 🌸</div>
+  <div class="h1 pD">Estructura y Colecciones</div>
+  <div class="ub pD"></div>
+  <div class="q-block pD"><span class="q-label pD">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Manejar las estructuras de datos fundamentales de Python y las librerías NumPy y Pandas para manipular y analizar datasets reales de forma eficiente.</div>
+  </div>
+  <div class="bx pD"><div class="bxt pD">🏗️ Diap. 2 · Estructura de un programa</div>
+    <svg viewBox="0 0 340 44" width="100%" height="44" style="display:block;margin-top:5px">
+      <defs><marker id="arP" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f06292"/></marker></defs>
+      <rect x="80" y="2" width="180" height="13" rx="4" fill="#f48fb1" opacity=".9"/><text x="170" y="11.5" fill="white" font-family="Patrick Hand" font-size="7.5" text-anchor="middle">📥 ENTRADA — datos, valores</text>
+      <line x1="170" y1="15" x2="170" y2="21" stroke="#f06292" stroke-width="1.5" marker-end="url(#arP)"/>
+      <rect x="80" y="21" width="180" height="13" rx="4" fill="#f06292" opacity=".9"/><text x="170" y="30.5" fill="white" font-family="Patrick Hand" font-size="7.5" text-anchor="middle">⚙️ PROCESO — algoritmo</text>
+      <line x1="170" y1="34" x2="170" y2="40" stroke="#f06292" stroke-width="1.5" marker-end="url(#arP)"/>
+      <text x="170" y="44" fill="#c2185b" font-family="Patrick Hand" font-size="7.5" text-anchor="middle">📤 SALIDA — resultado</text>
+    </svg>
+  </div>
+  <div class="bx pD"><div class="bxt pD">📋 Diap. 3 · Listas <span style="font-size:.65rem;opacity:.7">— colección ordenada, indexada, con duplicados, modificable</span></div>
+    <div class="code-wrap" style="margin-top:6px">
+      <div class="code-header">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-lang">python</span>
+      </div>
+      <div class="code-body"><span class="cm"># Crear y operar listas</span>
+frutas = [<span class="st">'manzana'</span>, <span class="st">'pera'</span>, <span class="st">'uva'</span>, <span class="st">'kiwi'</span>]
+frutas.<span class="fn">append</span>(<span class="st">'mango'</span>)       <span class="cm"># añadir al final</span>
+frutas.<span class="fn">insert</span>(<span class="nm">1</span>, <span class="st">'lima'</span>)     <span class="cm"># insertar en posición</span>
+frutas.<span class="fn">remove</span>(<span class="st">'pera'</span>)        <span class="cm"># eliminar por valor</span>
+<span class="kw">print</span>(frutas[<span class="nm">0</span>])              <span class="cm"># 'manzana' (índice)</span>
+<span class="kw">print</span>(frutas[-<span class="nm">1</span>])             <span class="cm"># 'mango' (último)</span>
+<span class="kw">print</span>(frutas[<span class="nm">1</span>:<span class="nm">3</span>])            <span class="cm"># slicing</span></div>
+    </div>
+  </div>
+  <div class="bx pD"><div class="bxt pD">🔒 Diap. 4 · Tuplas — inmutables</div>
+    <div class="code-wrap" style="margin-top:6px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body">coords = (<span class="nm">-17.8</span>, <span class="nm">-63.2</span>)   <span class="cm"># lat/lon Santa Cruz</span>
+rgb = (<span class="nm">255</span>, <span class="nm">99</span>, <span class="nm">132</span>)          <span class="cm"># color fijo</span>
+x, y = coords                  <span class="cm"># unpacking</span>
+<span class="cm"># coords[0] = 5  →  TypeError: inmutable!</span></div>
+    </div>
+  </div>
+</div>
+<div class="pgn">9</div>
+`},
+{p:'pD',n:10,h:`
+<div class="pD">
+  <div class="wt pD">🐍 Python · Diap. 5–8 · Sets, Dicts, NumPy</div>
+  <div class="h1 pD">Conjuntos, Diccionarios y NumPy</div>
+  <div class="ub pD"></div>
+  <div class="bx pD"><div class="bxt pD">🔵 Sets — sin orden, sin duplicados</div>
+    <div class="code-wrap" style="margin-top:6px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body">a = {<span class="st">'a'</span>,<span class="st">'b'</span>,<span class="st">'c'</span>,<span class="st">'b'</span>}    <span class="cm"># → {'a','b','c'}</span>
+b = {<span class="st">'b'</span>,<span class="st">'c'</span>,<span class="st">'d'</span>}
+a &amp; b   <span class="cm"># intersección: {'b','c'}</span>
+a | b   <span class="cm"># unión: {'a','b','c','d'}</span>
+a - b   <span class="cm"># diferencia: {'a'}</span></div>
+    </div>
+  </div>
+  <div class="bx pD"><div class="bxt pD">📖 Diccionarios — clave → valor</div>
+    <div class="code-wrap" style="margin-top:6px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body">alumna = {<span class="st">'nombre'</span>:<span class="st">'Luna'</span>, <span class="st">'nota'</span>:<span class="nm">95</span>, <span class="st">'sem'</span>:<span class="nm">3</span>}
+alumna[<span class="st">'pais'</span>] = <span class="st">'Colombia'</span>   <span class="cm"># agregar clave</span>
+<span class="kw">del</span> alumna[<span class="st">'sem'</span>]               <span class="cm"># eliminar clave</span>
+alumna.<span class="fn">get</span>(<span class="st">'edad'</span>, <span class="nm">0</span>)          <span class="cm"># default si no existe</span>
+<span class="kw">for</span> k, v <span class="kw">in</span> alumna.<span class="fn">items</span>():
+    <span class="kw">print</span>(<span class="nm">f</span><span class="st">"{k}: {v}"</span>)</div>
+    </div>
+  </div>
+  <div class="bx pD"><div class="bxt pD">🔢 NumPy — Diap. 7–8 · Arrays de alto rendimiento</div>
+    <div class="code-wrap" style="margin-top:6px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">import</span> numpy <span class="kw">as</span> np
+arr = np.<span class="fn">array</span>([[<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>],[<span class="nm">4</span>,<span class="nm">5</span>,<span class="nm">6</span>]])
+arr.shape     <span class="cm"># (2, 3)</span>
+arr.dtype     <span class="cm"># int64</span>
+arr.ndim      <span class="cm"># 2 dimensiones</span>
+arr.size      <span class="cm"># 6 elementos totales</span>
+np.<span class="fn">zeros</span>((<span class="nm">3</span>,<span class="nm">3</span>))  <span class="cm"># matriz 3×3 de ceros</span>
+np.<span class="fn">arange</span>(<span class="nm">0</span>,<span class="nm">10</span>,<span class="nm">2</span>)  <span class="cm"># [0,2,4,6,8]</span></div>
+    </div>
+  </div>
+  <div class="st pD">🚀 Benchmark: 1M elementos en lista Python: ~90ms. En NumPy: ~2ms. ¡45× más rápido por vectorización en C!</div>
+  <div class="q-block pD"><span class="q-label pD">⚠️ Error que cometí</span>
+    <div class="q-ans">Usé listas Python para operaciones matemáticas masivas. Resultado: código lentísimo. Lección: NumPy para números, Pandas para tablas.</div>
+  </div>
+</div>
+<div class="pgn">10</div>
+`},
+{p:'pD',n:11,h:`
+<div class="pD">
+  <div class="wt pD">🐼 Python · Diap. 9–10 · Pandas y DataFrame</div>
+  <div class="h1 pD">Pandas y DataFrame</div>
+  <div class="ub pD"></div>
+  <div class="bx pD"><div class="bxt pD">Pandas — manipulación de datos de alto nivel</div>
+    <div class="code-wrap" style="margin-top:6px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+df = pd.<span class="fn">read_csv</span>(<span class="st">'datos.csv'</span>)
+df.<span class="fn">head</span>(<span class="nm">5</span>)         <span class="cm"># 5 primeras filas</span>
+df.<span class="fn">tail</span>(<span class="nm">3</span>)         <span class="cm"># últimas 3 filas</span>
+df.shape            <span class="cm"># (filas, columnas)</span>
+df.<span class="fn">info</span>()          <span class="cm"># tipos y nulos</span>
+df.<span class="fn">describe</span>()      <span class="cm"># estadísticas</span>
+df.<span class="fn">isnull</span>().<span class="fn">sum</span>()  <span class="cm"># conteo de nulos</span>
+
+<span class="cm"># Seleccionar, filtrar y crear columnas</span>
+df[<span class="st">'nota'</span>]                <span class="cm"># serie de columna</span>
+df[df[<span class="st">'edad'</span>] &gt; <span class="nm">20</span>]       <span class="cm"># filtrar filas</span>
+df[<span class="st">'aprobada'</span>] = df[<span class="st">'nota'</span>] &gt;= <span class="nm">51</span>  <span class="cm"># nueva col</span>
+df.<span class="fn">iloc</span>[<span class="nm">0</span>]                <span class="cm"># fila por posición</span>
+df.<span class="fn">loc</span>[<span class="nm">0</span>, <span class="st">'nombre'</span>]       <span class="cm"># celda por label</span></div>
+    </div>
+  </div>
+  <svg viewBox="0 0 340 62" width="100%" height="62" style="display:block;margin-top:4px">
+    <rect x="0" y="0" width="340" height="62" rx="4" fill="#fce4ec"/>
+    <rect x="2" y="2" width="34" height="11" rx="2" fill="#c2185b"/><text x="19" y="10.5" fill="white" font-family="Caveat" font-size="7" text-anchor="middle">índice</text>
+    <rect x="40" y="2" width="56" height="11" rx="2" fill="#f48fb1" opacity=".9"/><text x="68" y="10.5" fill="white" font-family="Caveat" font-size="7" text-anchor="middle">nombre</text>
+    <rect x="100" y="2" width="40" height="11" rx="2" fill="#f48fb1" opacity=".9"/><text x="120" y="10.5" fill="white" font-family="Caveat" font-size="7" text-anchor="middle">edad</text>
+    <rect x="144" y="2" width="66" height="11" rx="2" fill="#f48fb1" opacity=".9"/><text x="177" y="10.5" fill="white" font-family="Caveat" font-size="7" text-anchor="middle">ciudad</text>
+    <rect x="214" y="2" width="56" height="11" rx="2" fill="#f48fb1" opacity=".9"/><text x="242" y="10.5" fill="white" font-family="Caveat" font-size="7" text-anchor="middle">nota</text>
+    <rect x="274" y="2" width="62" height="11" rx="2" fill="#f48fb1" opacity=".9"/><text x="305" y="10.5" fill="white" font-family="Caveat" font-size="7" text-anchor="middle">aprobada</text>
+    <rect x="2" y="16" width="34" height="10" rx="2" fill="#e91e63" opacity=".6"/><text x="19" y="24" fill="white" font-family="Patrick Hand" font-size="6" text-anchor="middle">0</text>
+    <text x="68" y="24" fill="#1c1033" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">Luna</text>
+    <text x="120" y="24" fill="#1c1033" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">21</text>
+    <text x="177" y="24" fill="#1c1033" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">Santa Cruz</text>
+    <text x="242" y="24" fill="#1c1033" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">95.5</text>
+    <text x="305" y="24" fill="#00897b" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">True</text>
+    <rect x="2" y="29" width="34" height="10" rx="2" fill="#e91e63" opacity=".4"/><text x="19" y="37" fill="white" font-family="Patrick Hand" font-size="6" text-anchor="middle">1</text>
+    <text x="68" y="37" fill="#1c1033" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">Carlos</text>
+    <text x="120" y="37" fill="#1c1033" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">22</text>
+    <text x="177" y="37" fill="#1c1033" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">La Paz</text>
+    <text x="242" y="37" fill="#1c1033" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">48.0</text>
+    <text x="305" y="37" fill="#c2185b" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">False</text>
+    <text x="170" y="56" fill="#c2185b" font-family="Patrick Hand" font-size="6.5" text-anchor="middle">Estructura: tipos mixtos por columna · indexado · bidimensional</text>
+  </svg>
+  <div class="q-block pD"><span class="q-label pD">🚀 Aplicación en mi proyecto</span>
+    <div class="q-ans">Todo mi proyecto usará DataFrames Pandas con operaciones vectorizadas NumPy para máximo rendimiento. Nunca más loops manuales sobre filas.</div>
+  </div>
+</div>
+<div class="pgn">11</div>
+`},
+{p:'pD',n:12,h:`<div class="pD"><div class="wt pD">🐍 Python · Tabla comparativa + NumPy avanzado</div><div class="h1 pD">Resumen y Tips</div><div class="ub pD"></div><table class="tb pD"><thead><tr><th>Tipo</th><th>Orden</th><th>Dup.</th><th>Mutable</th><th>Uso</th></tr></thead><tbody><tr><td>Lista</td><td>✅</td><td>✅</td><td>✅</td><td>Datos que cambian</td></tr><tr><td>Tupla</td><td>✅</td><td>✅</td><td>❌</td><td>Coords, configs fijas</td></tr><tr><td>Set</td><td>❌</td><td>❌</td><td>✅</td><td>Eliminar duplicados</td></tr><tr><td>Dict</td><td>✅</td><td>❌</td><td>✅</td><td>Clave-valor, mapeos</td></tr><tr><td>NumPy arr</td><td>✅</td><td>✅</td><td>✅</td><td>Matematicas masivas</td></tr></tbody></table><div class="bx pD" style="margin-top:6px"><div class="bxt pD">NumPy — operaciones vectorizadas</div><div class="code-wrap" style="margin-top:5px"><div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div><div class="code-body"><span class="kw">import</span> numpy <span class="kw">as</span> np
+a = np.<span class="fn">array</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>,<span class="nm">4</span>,<span class="nm">5</span>])
+a * <span class="nm">2</span>           <span class="cm"># [2,4,6,8,10]</span>
+a ** <span class="nm">2</span>          <span class="cm"># [1,4,9,16,25]</span>
+np.<span class="fn">mean</span>(a)     <span class="cm"># 3.0</span>
+np.<span class="fn">std</span>(a)      <span class="cm"># 1.414</span>
+<span class="cm"># Indexing 2D</span>
+mat = np.<span class="fn">array</span>([[<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>],[<span class="nm">4</span>,<span class="nm">5</span>,<span class="nm">6</span>]])
+mat[<span class="nm">0</span>, :]     <span class="cm"># primera fila: [1,2,3]</span>
+mat[:, <span class="nm">1</span>]     <span class="cm"># segunda col: [2,5]</span>
+mat[mat &gt; <span class="nm">3</span>]  <span class="cm"># filtro bool: [4,5,6]</span></div></div></div><div class="g2" style="margin-top:5px"><div class="q-block pD"><span class="q-label pD">⚠️ iloc vs loc</span><div class="q-ans">iloc: posicion entera como listas. loc: etiqueta de indice. No confundirlos, generan errores dificiles de depurar.</div></div><div class="q-block pD"><span class="q-label pD">🚀 Aplicacion</span><div class="q-ans">Todo mi proyecto usara DataFrames Pandas con NumPy para operaciones matematicas. Jamas mas loops sobre filas de un DataFrame.</div></div></div></div><div class="pgn">12</div>`},
+{p:'pE',n:13,h:`
+<div class="pE">
+  <div class="wt pE">🌐 Recolección de Datos · Diap. 1–9 🌸</div>
+  <div class="h1 pE">Definición, Importancia y Fuentes</div>
+  <div class="ub pE"></div>
+  <div class="q-block pE"><span class="q-label pE">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Obtener datos de calidad de diversas fuentes usando las herramientas correctas. El principio clave: "Garbage in, garbage out" — si los datos son malos, el análisis también lo será.</div>
+  </div>
+  <div class="bx pE"><div class="bxt pE">📌 Definición y Tipos</div>
+    <div class="g2" style="margin-top:6px">
+      <div class="ab pE"><span class="abl pE">Estructurados 🗃️</span><div class="abb">Tablas SQL, CSV, Excel. Alta calidad, fácil de procesar.</div></div>
+      <div class="ab pE"><span class="abl pE">No Estructurados 📄</span><div class="abb">Texto, imágenes, audio. Requiere más preprocesamiento.</div></div>
+    </div>
+  </div>
+  <div class="bx pE"><div class="bxt pE">🛠️ Fuentes + Diap. 14 · urllib</div>
+    <div style="margin:5px 0 5px"><span class="ch pE">🗄️ SQL</span><span class="ch pE ch2">🔌 APIs</span><span class="ch pE">🕷️ Scraping</span><span class="ch pE ch2">📡 IoT</span><span class="ch pE">📁 CSV</span></div>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">import</span> urllib.request <span class="kw">as</span> ur
+url = <span class="st">"https://es.wikipedia.org/wiki/ISO_3166-1"</span>
+resp = ur.<span class="fn">urlopen</span>(url)
+html = resp.<span class="fn">read</span>().<span class="fn">decode</span>(<span class="st">'utf-8'</span>)</div>
+    </div>
+  </div>
+  <div class="bx pE"><div class="bxt pE">🍜 Diap. 15–17 · BeautifulSoup</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+soup = <span class="fn">BeautifulSoup</span>(html, <span class="st">'html.parser'</span>)
+tabla  = soup.<span class="fn">find</span>(<span class="st">'table'</span>, {<span class="st">'class'</span>:<span class="st">'wikitable'</span>})
+filas  = soup.<span class="fn">find_all</span>(<span class="st">'tr'</span>)
+titulo = soup.<span class="fn">find</span>(<span class="st">'h1'</span>).<span class="fn">get_text</span>()
+links  = [a.<span class="fn">get</span>(<span class="st">'href'</span>) <span class="kw">for</span> a <span class="kw">in</span> soup.<span class="fn">find_all</span>(<span class="st">'a'</span>)]</div>
+    </div>
+  </div>
+  <div class="q-block pE"><span class="q-label pE">⚠️ Desafíos</span>
+    <div class="q-ans">Páginas con JS dinámico no las parsea BeautifulSoup — necesita Selenium. Siempre revisar robots.txt antes de scrapear.</div>
+  </div>
+</div>
+<div class="pgn">13</div>
+`},
+{p:'pE',n:14,h:`<div class="pE"><div class="wt pE">🌐 Recoleccion · Practica 4 completa</div><div class="h1 pE">Web Scraping en accion</div><div class="ub pE"></div><div class="q-block pE"><span class="q-label pE">🧩 Problema planteado</span><div class="q-ans">Extraer automaticamente los codigos de paises ISO 3166-1 de Wikipedia y guardarlos en un CSV ordenado para analisis posterior sin hacerlo manualmente.</div></div><div class="bx pE"><div class="bxt pE">Codigo completo — Practica 4</div><div class="code-wrap" style="margin-top:5px"><div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div><div class="code-body"><span class="kw">import</span> urllib.request <span class="kw">as</span> ur
+<span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+<span class="cm"># Paso 1: obtener HTML</span>
+url  = <span class="st">'https://es.wikipedia.org/wiki/ISO_3166-1'</span>
+html = ur.<span class="fn">urlopen</span>(url).<span class="fn">read</span>()
+
+<span class="cm"># Paso 2: parsear la tabla</span>
+soup  = <span class="fn">BeautifulSoup</span>(html, <span class="st">'html.parser'</span>)
+tabla = soup.<span class="fn">find</span>(<span class="st">'table'</span>, {<span class="st">'class'</span>: <span class="st">'wikitable'</span>})
+filas = tabla.<span class="fn">find_all</span>(<span class="st">'tr'</span>)[<span class="nm">1</span>:]  <span class="cm"># saltar header</span>
+
+<span class="cm"># Paso 3: extraer datos de cada fila</span>
+datos = []
+<span class="kw">for</span> fila <span class="kw">in</span> filas:
+    celdas = fila.<span class="fn">find_all</span>([<span class="st">'td'</span>, <span class="st">'th'</span>])
+    row = [c.<span class="fn">get_text</span>().<span class="fn">strip</span>() <span class="kw">for</span> c <span class="kw">in</span> celdas]
+    <span class="kw">if</span> row: datos.<span class="fn">append</span>(row)
+
+<span class="cm"># Paso 4: crear DataFrame y guardar</span>
+df = pd.<span class="fn">DataFrame</span>(datos,
+    columns=[<span class="st">'pais'</span>,<span class="st">'alfa2'</span>,<span class="st">'alfa3'</span>,<span class="st">'num'</span>])
+df.<span class="fn">dropna</span>(inplace=<span class="kw">True</span>)
+df.<span class="fn">to_csv</span>(<span class="st">'iso3166.csv'</span>, index=<span class="kw">False</span>)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"Paises guardados: {len(df)}"</span>)</div></div></div><div class="g2" style="margin-top:5px"><div class="q-block pE"><span class="q-label pE">💡 Solucion</span><div class="q-ans">Iterar sobre cada fila HTML, extraer texto con get_text().strip() y construir el DataFrame. La clave es limpiar espacios y saltos de linea.</div></div><div class="q-block pE"><span class="q-label pE">🚀 Aplicacion</span><div class="q-ans">Combinar datos de Kaggle con scraping de fuentes bolivianas como INE Bolivia para enriquecer el contexto local del proyecto.</div></div></div></div><div class="pgn">14</div>`},
+{p:'pF',n:15,h:`
+<div class="pF">
+  <div class="stg pF">🗄️ SQL AVANZADO · Diap. 1–7 🌸</div>
+  <div class="h1 pF">PIVOT, Subqueries y Stored Procedures</div>
+  <div class="ub pF"></div>
+  <div class="q-block pF"><span class="q-label pF">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Dominar SQL más allá del SELECT básico para extraer y transformar datos directamente desde la base de datos antes de llegar a Python.</div>
+  </div>
+  <div class="bx pF"><div class="bxt pF">🔄 PIVOT — Diap. 2</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">sql</span></div>
+      <div class="code-body"><span class="cm">-- Convertir filas en columnas</span>
+<span class="kw">SELECT</span> Producto, [<span class="nm">2023</span>], [<span class="nm">2024</span>], [<span class="nm">2025</span>]
+<span class="kw">FROM</span>   Ventas
+<span class="kw">PIVOT</span>  (<span class="fn">SUM</span>(Monto) <span class="kw">FOR</span> Año
+         <span class="kw">IN</span> ([<span class="nm">2023</span>],[<span class="nm">2024</span>],[<span class="nm">2025</span>])) <span class="kw">AS</span> pvt
+<span class="kw">ORDER BY</span> Producto</div>
+    </div>
+  </div>
+  <div class="bx pF"><div class="bxt pF">🔍 Subqueries correlacionadas — Diap. 3</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">sql</span></div>
+      <div class="code-body"><span class="cm">-- Clientes con ventas > promedio general</span>
+<span class="kw">SELECT</span> c.Nombre
+<span class="kw">FROM</span>   Clientes c
+<span class="kw">WHERE</span>  (<span class="kw">SELECT</span> <span class="fn">SUM</span>(Monto) <span class="kw">FROM</span> Ventas v
+         <span class="kw">WHERE</span> v.ClienteID = c.ID)
+       &gt; (<span class="kw">SELECT</span> <span class="fn">AVG</span>(Monto) <span class="kw">FROM</span> Ventas)</div>
+    </div>
+  </div>
+  <div class="q-block pF"><span class="q-label pF">⚠️ Desafíos</span>
+    <div class="q-ans">La sintaxis PIVOT en SQL Server es muy verbosa al principio. Los parámetros OUTPUT tienen sintaxis especial diferente a Python o Java.</div>
+  </div>
+  <div class="q-block pF"><span class="q-label pF">📚 Aprendizaje</span>
+    <div class="q-ans">Los Stored Procedures son la forma "profesional" de manejar lógica de negocio en la BD — evitan repetición y protegen contra SQL injection cuando se usan correctamente con parámetros tipados.</div>
+  </div>
+</div>
+<div class="pgn">15</div>
+`},
+{p:'pF',n:16,h:`
+<div class="pF">
+  <div class="wt pF">🗄️ SQL · Stored Procedures · Diap. 4–7</div>
+  <div class="h1 pF">Stored Procedures</div>
+  <div class="ub pF"></div>
+  <div class="bx pF"><div class="bxt pF">⚙️ Sintaxis básica + parámetros — Diap. 5–6</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">sql</span></div>
+      <div class="code-body"><span class="kw">CREATE PROCEDURE</span> <span class="fn">sp_GetCliente</span>
+    <span class="op">@ClienteID</span>   <span class="kw">INT</span>,
+    <span class="op">@TipoCliente</span> <span class="kw">VARCHAR</span>(<span class="nm">20</span>) <span class="kw">OUTPUT</span>
+<span class="kw">AS BEGIN</span>
+    <span class="kw">SELECT</span> * <span class="kw">FROM</span> Clientes
+    <span class="kw">WHERE</span>  ID = <span class="op">@ClienteID</span>
+
+    <span class="kw">IF</span> (<span class="kw">SELECT</span> <span class="fn">SUM</span>(Monto) <span class="kw">FROM</span> Ventas
+        <span class="kw">WHERE</span> ClienteID = <span class="op">@ClienteID</span>) &gt; <span class="nm">5000</span>
+        <span class="kw">SET</span> <span class="op">@TipoCliente</span> = <span class="st">'VIP'</span>
+    <span class="kw">ELSE</span>
+        <span class="kw">SET</span> <span class="op">@TipoCliente</span> = <span class="st">'Regular'</span>
+<span class="kw">END</span></div>
+    </div>
+  </div>
+  <div class="bx pF"><div class="bxt pF">🧪 Práctica 2 · SP registrar venta + reducir stock</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">sql</span></div>
+      <div class="code-body"><span class="kw">CREATE PROCEDURE</span> <span class="fn">sp_RegistrarVenta</span>
+    <span class="op">@ProdID</span> <span class="kw">INT</span>, <span class="op">@Cant</span> <span class="kw">INT</span>, <span class="op">@Precio</span> <span class="kw">DECIMAL</span>(<span class="nm">10</span>,<span class="nm">2</span>)
+<span class="kw">AS BEGIN</span>
+    <span class="kw">BEGIN TRANSACTION</span>
+    <span class="kw">INSERT INTO</span> Ventas(ProdID, Cantidad, Monto)
+    <span class="kw">VALUES</span>(<span class="op">@ProdID</span>, <span class="op">@Cant</span>, <span class="op">@Precio</span> * <span class="op">@Cant</span>)
+
+    <span class="kw">UPDATE</span> Inventario
+    <span class="kw">SET</span>    Stock = Stock - <span class="op">@Cant</span>
+    <span class="kw">WHERE</span>  ID = <span class="op">@ProdID</span>
+    <span class="kw">COMMIT TRANSACTION</span>
+<span class="kw">END</span></div>
+    </div>
+  </div>
+  <div class="q-block pF"><span class="q-label pF">🚀 Aplicación en mi proyecto</span>
+    <div class="q-ans">Usaré un SP para extraer el dataset procesado directamente desde SQL Server hacia Python usando SQLAlchemy o pyodbc. Evita exportar archivos intermedios.</div>
+  </div>
+</div>
+<div class="pgn">16</div>
+`},
+{p:'pG',n:17,h:`
+<div class="pG">
+  <div class="stg pG">🧹 LIMPIEZA DE DATOS · Diap. 1–9 🌸</div>
+  <div class="h1 pG">Datos del Mundo Real</div>
+  <div class="ub pG"></div>
+  <div class="q-block pG"><span class="q-label pG">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Dominar las técnicas para limpiar, transformar y preparar datos reales. El ~80% del tiempo de análisis se va en limpieza — es la etapa más crítica aunque no sea la más glamurosa.</div>
+  </div>
+  <div class="g3">
+    <div class="bx pG" style="text-align:center;padding:5px"><div style="font-size:1.2rem">❌</div><span class="abl pG" style="font-size:.68rem">Incompletos</span><div class="sm">Ej: Ocupación=""</div></div>
+    <div class="bx pG" style="text-align:center;padding:5px"><div style="font-size:1.2rem">📢</div><span class="abl pG" style="font-size:.68rem">Con ruido</span><div class="sm">Ej: Salario="-10"</div></div>
+    <div class="bx pG" style="text-align:center;padding:5px"><div style="font-size:1.2rem">🔀</div><span class="abl pG" style="font-size:.68rem">Inconsistentes</span><div class="sm">Edad=42, nació 1997</div></div>
+  </div>
+  <div class="bx pG"><div class="bxt pG">🔧 Tratamiento de Faltantes — Diap. 7–9</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body">df.<span class="fn">isnull</span>().<span class="fn">sum</span>()           <span class="cm"># contar nulos por col</span>
+df.<span class="fn">fillna</span>(df.<span class="fn">median</span>())     <span class="cm"># imputar mediana numérica</span>
+df.<span class="fn">fillna</span>(method=<span class="st">'ffill'</span>)   <span class="cm"># forward fill temporal</span>
+df.<span class="fn">dropna</span>(subset=[<span class="st">'target'</span>]) <span class="cm"># drop sin etiqueta</span>
+df.<span class="fn">fillna</span>({<span class="st">'ciudad'</span>: df[<span class="st">'ciudad'</span>].<span class="fn">mode</span>()[<span class="nm">0</span>]})</div>
+    </div>
+  </div>
+  <table class="tb pG">
+    <thead><tr><th>Estrategia</th><th>Cuándo usar</th></tr></thead>
+    <tbody>
+      <tr><td>🚫 Dejar pasar</td><td>Algoritmo robusto ante nulos</td></tr>
+      <tr><td>🗑️ Eliminar columna</td><td>Proporción nulos muy alta (&gt;60%)</td></tr>
+      <tr><td>⚡ Llenado automático</td><td>Media, mediana, moda o modelo ML</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="pgn">17</div>
+`},
+{p:'pG',n:18,h:`
+<div class="pG">
+  <div class="wt pG">🧹 Limpieza · Diap. 19–89 · Transformaciones</div>
+  <div class="h1 pG">Transformaciones Avanzadas</div>
+  <div class="ub pG"></div>
+  <div class="bx pG"><div class="bxt pG">Lambda + Duplicados + Outliers (IQR)</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="cm"># Eliminar duplicados</span>
+df.<span class="fn">drop_duplicates</span>(subset=[<span class="st">'id'</span>], inplace=<span class="kw">True</span>)
+
+<span class="cm"># Lambda — función en una sola línea</span>
+df[<span class="st">'cat'</span>] = df[<span class="st">'nota'</span>].<span class="fn">apply</span>(
+    <span class="kw">lambda</span> x: <span class="st">'A'</span> <span class="kw">if</span> x &gt;= <span class="nm">90</span> <span class="kw">else</span> (<span class="st">'B'</span> <span class="kw">if</span> x &gt;= <span class="nm">70</span> <span class="kw">else</span> <span class="st">'C'</span>))
+
+<span class="cm"># Detectar outliers con IQR</span>
+Q1 = df[<span class="st">'salario'</span>].<span class="fn">quantile</span>(<span class="nm">0.25</span>)
+Q3 = df[<span class="st">'salario'</span>].<span class="fn">quantile</span>(<span class="nm">0.75</span>)
+IQR = Q3 - Q1
+df_clean = df[df[<span class="st">'salario'</span>].<span class="fn">between</span>(Q1-<span class="nm">1.5</span>*IQR, Q3+<span class="nm">1.5</span>*IQR)]
+
+<span class="cm"># Discretización (binning)</span>
+df[<span class="st">'edad_cat'</span>] = pd.<span class="fn">cut</span>(df[<span class="st">'edad'</span>], bins=<span class="nm">5</span>)
+df[<span class="st">'edad_q'</span>]   = pd.<span class="fn">qcut</span>(df[<span class="st">'edad'</span>], q=<span class="nm">5</span>)
+
+<span class="cm"># Variables Dummy</span>
+dummies = pd.<span class="fn">get_dummies</span>(df[<span class="st">'ciudad'</span>], drop_first=<span class="kw">True</span>)
+
+<span class="cm"># Strings</span>
+df[<span class="st">'nombre'</span>] = df[<span class="st">'nombre'</span>].str.<span class="fn">strip</span>().<span class="fn">upper</span>()
+
+<span class="cm"># Merging</span>
+pd.<span class="fn">merge</span>(df1, df2, on=<span class="st">'id'</span>, how=<span class="st">'inner'</span>)</div>
+    </div>
+  </div>
+  <div class="q-block pG"><span class="q-label pG">🤔 ¿Qué error cometí y cómo lo corregí?</span>
+    <div class="q-ans">Eliminé automáticamente TODOS los outliers. Error: algunos eran valores legítimos (salarios altos de ejecutivos). Ahora primero entiendo el contexto antes de eliminar nada.</div>
+  </div>
+</div>
+<div class="pgn">18</div>
+`},
+{p:'pG',n:19,h:`<div class="pG"><div class="wt pG">🧹 Limpieza · Pipeline reutilizable</div><div class="h1 pG">Funcion de limpieza modular</div><div class="ub pG"></div><div class="bx pG"><div class="bxt pG">Pipeline completo reutilizable</div><div class="code-wrap" style="margin-top:5px"><div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div><div class="code-body"><span class="kw">def</span> <span class="fn">clean_dataset</span>(df):
+    <span class="st">"""Pipeline de limpieza estandar."""</span>
+    <span class="cm"># 1. Eliminar duplicados</span>
+    df = df.<span class="fn">drop_duplicates</span>()
+    <span class="cm"># 2. Normalizar strings</span>
+    <span class="kw">for</span> col <span class="kw">in</span> df.<span class="fn">select_dtypes</span>(include=<span class="st">'object'</span>):
+        df[col] = df[col].str.<span class="fn">strip</span>().<span class="fn">lower</span>()
+    <span class="cm"># 3. Imputar nulos numericos</span>
+    num = df.<span class="fn">select_dtypes</span>(include=<span class="st">'number'</span>).columns
+    df[num] = df[num].<span class="fn">fillna</span>(df[num].<span class="fn">median</span>())
+    <span class="cm"># 4. Eliminar outliers IQR</span>
+    <span class="kw">for</span> col <span class="kw">in</span> num:
+        Q1 = df[col].<span class="fn">quantile</span>(<span class="nm">0.25</span>)
+        Q3 = df[col].<span class="fn">quantile</span>(<span class="nm">0.75</span>)
+        IQR = Q3 - Q1
+        df = df[df[col].<span class="fn">between</span>(
+            Q1-<span class="nm">1.5</span>*IQR, Q3+<span class="nm">1.5</span>*IQR)]
+    <span class="kw">return</span> df.<span class="fn">reset_index</span>(drop=<span class="kw">True</span>)
+
+<span class="cm"># Uso:</span>
+df_clean = <span class="fn">clean_dataset</span>(df_raw)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"Filas antes: {len(df_raw)}, despues: {len(df_clean)}"</span>)</div></div></div><div class="g2" style="margin-top:5px"><div class="q-block pG"><span class="q-label pG">⚠️ Error critico: data leakage</span><div class="q-ans">Nunca hacer fit del scaler antes del split train/test. Primero split, luego fit_transform en train, solo transform en test. Error mas comun en ML.</div></div><div class="q-block pG"><span class="q-label pG">🌸 Truco favorito</span><div class="q-ans">Visualizar con boxplots ANTES y DESPUES de cada transformacion. Si el boxplot no cambia como espero, algo esta mal en el pipeline.</div></div><div class="q-block pG"><span class="q-label pG">📚 Sintesis</span><div class="q-ans">80% del tiempo en analisis real se va en limpieza. Es donde mas aprendes del dataset. No es aburrido, es detective work.</div></div><div class="q-block pG"><span class="q-label pG">🤔 Que aprendí</span><div class="q-ans">pd.qcut() con valores repetidos lanza ValueError. Solucion: pd.cut() con bins manuales o duplicates='drop'. Aprenderlo de los errores.</div></div></div></div><div class="pgn">19</div>`},
+{p:'pH',n:20,h:`
+<div class="pH">
+  <div class="stg pH">❓ HIPÓTESIS Y PRUEBAS · Diap. 1–20 🌸</div>
+  <div class="h1 pH">Definición y Formulación</div>
+  <div class="ub pH"></div>
+  <div class="q-block pH"><span class="q-label pH">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Aprender a formular hipótesis verificables y elegir la prueba estadística correcta según el tipo de variables y número de grupos. El p-valor no es magia: es probabilidad.</div>
+  </div>
+  <div class="g2">
+    <div class="bx pH"><div class="bxt pH">H₀ — Hipótesis Nula</div>
+      <div class="bd pH" style="margin-top:5px">No existe relación. Se asume verdadera hasta que la evidencia diga lo contrario.</div>
+      <div class="fm">"No hay relación entre corrupción y felicidad."</div>
+    </div>
+    <div class="bx pH"><div class="bxt pH">H₁ — Hipótesis Alternativa</div>
+      <div class="bd pH" style="margin-top:5px">Existe relación. Es lo que queremos demostrar con los datos.</div>
+      <div class="fm">"Existe relación entre corrupción y felicidad."</div>
+    </div>
+  </div>
+  <div class="bx pH"><div class="bxt pH">📊 p-valor + t-Student + Chi² — Diap. 11–20</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">from</span> scipy <span class="kw">import</span> stats
+
+<span class="cm"># t-test muestras independientes</span>
+t, p = stats.<span class="fn">ttest_ind</span>(grupo_alto, grupo_bajo)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"t={t:.3f}, p={p:.4f}"</span>)
+<span class="kw">if</span> p &lt; <span class="nm">0.05</span>:
+    <span class="kw">print</span>(<span class="st">"Rechazamos H₀: diferencia significativa"</span>)
+
+<span class="cm"># Chi-cuadrado: variables categóricas</span>
+<span class="kw">from</span> scipy.stats <span class="kw">import</span> chi2_contingency
+tabla = pd.<span class="fn">crosstab</span>(df[<span class="st">'region'</span>], df[<span class="st">'feliz'</span>])
+chi2, p2, dof, exp = <span class="fn">chi2_contingency</span>(tabla)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"Chi2={chi2:.3f}, p={p2:.4f}"</span>)</div>
+    </div>
+  </div>
+  <div class="q-block pH"><span class="q-label pH">📚 Aprendizaje</span>
+    <div class="q-ans">El p-valor no mide la magnitud del efecto, solo si existe. Siempre reportar también el effect size (Cohen's d). Un resultado significativo estadísticamente no siempre es relevante prácticamente.</div>
+  </div>
+</div>
+<div class="pgn">20</div>
+`},
+{p:'pH',n:21,h:`
+<div class="pH">
+  <div class="wt pH">📊 ANOVA · Diap. 21–29</div>
+  <div class="h1 pH">ANOVA — Análisis de Varianza</div>
+  <div class="ub pH"></div>
+  <div class="bd pH">Técnica para comparar medias de <strong>3 o más grupos</strong> y determinar si al menos una es significativamente diferente.</div>
+  <div class="fm">F = Variación ENTRE grupos / Variación DENTRO del grupo</div>
+  <div class="bx pH"><div class="bxt pH">ANOVA + Post-hoc Tukey — Diap. 27–29</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">from</span> scipy.stats <span class="kw">import</span> f_oneway
+<span class="kw">from</span> statsmodels.stats.multicomp <span class="kw">import</span> pairwise_tukeyhsd
+
+<span class="cm"># Dividir felicidad por categoría de PIB</span>
+alto  = df[df[<span class="st">'pib_cat'</span>] == <span class="st">'alto'</span>][<span class="st">'felicidad'</span>]
+medio = df[df[<span class="st">'pib_cat'</span>] == <span class="st">'medio'</span>][<span class="st">'felicidad'</span>]
+bajo  = df[df[<span class="st">'pib_cat'</span>] == <span class="st">'bajo'</span>][<span class="st">'felicidad'</span>]
+
+F, p = <span class="fn">f_oneway</span>(alto, medio, bajo)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"F={F:.3f}, p={p:.4f}"</span>)
+
+<span class="cm"># Post-hoc: ¿qué grupos difieren exactamente?</span>
+res = <span class="fn">pairwise_tukeyhsd</span>(df[<span class="st">'felicidad'</span>], df[<span class="st">'pib_cat'</span>])
+<span class="kw">print</span>(res.<span class="fn">summary</span>())</div>
+    </div>
+  </div>
+  <table class="tb pH">
+    <thead><tr><th>Tipo ANOVA</th><th>Cuándo usar</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Un factor</strong></td><td>Una variable categórica predictora</td></tr>
+      <tr><td><strong>Dos factores</strong></td><td>País y género simultáneamente</td></tr>
+      <tr><td><strong>Medidas repetidas</strong></td><td>Mismos sujetos en varios momentos</td></tr>
+    </tbody>
+  </table>
+  <div class="q-block pH"><span class="q-label pH">🤔 ¿Qué aprendí realmente?</span>
+    <div class="q-ans">t-test para 2 grupos numéricos, Chi² para categóricas, ANOVA para 3+ grupos. Usar siempre Tukey HSD después de ANOVA para saber QUÉ grupos específicos difieren.</div>
+  </div>
+</div>
+<div class="pgn">21</div>
+`},
+{p:'pH',n:22,h:`<div class="pH"><div class="wt pH">❓ Hipotesis · Practica 9 completa</div><div class="h1 pH">Practica 9 — Dataset Felicidad</div><div class="ub pH"></div><div class="q-block pH"><span class="q-label pH">🧩 Problema planteado</span><div class="q-ans">Dataset World Happiness Report: plantear 2 hipotesis para t-test, 2 para Chi-cuadrado, aplicar ANOVA con grupos de PIB y Tukey HSD para comparaciones multiples.</div></div><div class="bx pH"><div class="bxt pH">Practica 9 — paso a paso</div><div class="code-wrap" style="margin-top:5px"><div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div><div class="code-body"><span class="kw">from</span> scipy <span class="kw">import</span> stats
+<span class="kw">from</span> scipy.stats <span class="kw">import</span> chi2_contingency, f_oneway
+<span class="kw">from</span> statsmodels.stats.multicomp <span class="kw">import</span> pairwise_tukeyhsd
+
+<span class="cm"># H1: t-test — PIB alto vs bajo y felicidad</span>
+alt = df[df[<span class="st">'gdp'</span>] &gt; <span class="nm">10</span>][<span class="st">'ladder'</span>]
+baj = df[df[<span class="st">'gdp'</span>] &lt;= <span class="nm">10</span>][<span class="st">'ladder'</span>]
+t, p = stats.<span class="fn">ttest_ind</span>(alt, baj)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"t={t:.3f}, p={p:.4f}"</span>)  <span class="cm"># p&lt;0.05?</span>
+
+<span class="cm"># H2: Chi2 — region vs pais feliz (ladder&gt;5)</span>
+df[<span class="st">'feliz'</span>] = (df[<span class="st">'ladder'</span>] &gt; <span class="nm">5</span>).<span class="fn">astype</span>(<span class="st">'int'</span>)
+tab = pd.<span class="fn">crosstab</span>(df[<span class="st">'region'</span>], df[<span class="st">'feliz'</span>])
+chi2, p2, _, _ = <span class="fn">chi2_contingency</span>(tab)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"Chi2={chi2:.3f}, p={p2:.4f}"</span>)
+
+<span class="cm"># ANOVA + Tukey HSD</span>
+grupos = [df[df[<span class="st">'pib_cat'</span>]==c][<span class="st">'ladder'</span>]
+          <span class="kw">for</span> c <span class="kw">in</span> [<span class="st">'alto'</span>,<span class="st">'medio'</span>,<span class="st">'bajo'</span>]]
+F, p3 = <span class="fn">f_oneway</span>(*grupos)
+<span class="kw">if</span> p3 &lt; <span class="nm">0.05</span>:
+    res = <span class="fn">pairwise_tukeyhsd</span>(
+        df[<span class="st">'ladder'</span>], df[<span class="st">'pib_cat'</span>])
+    <span class="kw">print</span>(res.<span class="fn">summary</span>())</div></div></div><div class="q-block pH" style="margin-top:5px"><span class="q-label pH">📚 Aprendizaje</span><div class="q-ans">El p-valor no mide la magnitud del efecto, solo si existe. Siempre reportar tambien Cohen d o eta-cuadrado. Un resultado significativo estadisticamente no siempre es relevante en la practica.</div></div><div class="st pH">Tip: verificar normalidad con stats.shapiro(grupo). Si p-shapiro menor 0.05, usar Mann-Whitney en lugar de t-test.</div></div><div class="pgn">22</div>`},
+{p:'pA',n:23,h:`
+<div class="pA" style="--a:#7b1fa2;--b:#ab47bc;--c:#f3e5f5;--d:#4a148c;--e:#faf5ff;--ac:#ce93d8">
+  <div class="stg pA">⚙️ FEATURE ENGINEERING · Diap. 1–15 🌸</div>
+  <div class="h1 pA">Feature Engineering</div>
+  <div class="ub pA"></div>
+  <div class="qt pA">"FE es el arte de construir representaciones de datos que optimicen el ML y mejoran la capacidad predictiva de los modelos." — <em>Aurélien Géron</em></div>
+  <div class="q-block pA"><span class="q-label pA">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Transformar datos crudos en representaciones que maximicen el rendimiento del modelo sin añadir ruido. Una buena representación supera incluso a algoritmos más complejos.</div>
+  </div>
+  <div class="bx pA"><div class="bxt pA">Codificación + Normalización + Selección</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> (MinMaxScaler,
+    StandardScaler, LabelEncoder)
+<span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> PCA
+
+<span class="cm"># One-Hot Encoding</span>
+dummies = pd.<span class="fn">get_dummies</span>(df[<span class="st">'geografía'</span>], drop_first=<span class="kw">True</span>)
+
+<span class="cm"># Label Encoding (ordinal)</span>
+le = <span class="fn">LabelEncoder</span>()
+df[<span class="st">'genero_cod'</span>] = le.<span class="fn">fit_transform</span>(df[<span class="st">'genero'</span>])
+
+<span class="cm"># Min-Max: escala a [0, 1]</span>
+scaler = <span class="fn">MinMaxScaler</span>()
+df_norm = scaler.<span class="fn">fit_transform</span>(df[cols_num])
+
+<span class="cm"># Z-Score: media=0, desv.est=1</span>
+std = <span class="fn">StandardScaler</span>()
+df_std = std.<span class="fn">fit_transform</span>(df[cols_num])
+
+<span class="cm"># PCA: reducción de dimensionalidad</span>
+pca = <span class="fn">PCA</span>(n_components=<span class="nm">2</span>)
+X_pca = pca.<span class="fn">fit_transform</span>(df_norm)
+<span class="kw">print</span>(pca.explained_variance_ratio_)</div>
+    </div>
+  </div>
+</div>
+<div class="pgn">23</div>
+`},
+{p:'pA',n:24,h:`
+<div class="pA" style="--a:#7b1fa2;--b:#ab47bc;--c:#f3e5f5;--d:#4a148c;--e:#faf5ff;--ac:#ce93d8">
+  <div class="wt pA">⚙️ Feature Eng. · Práctica + Apuntes</div>
+  <div class="h1 pA">Práctica FE + Reflexión</div>
+  <div class="ub pA"></div>
+  <div class="bx pA"><div class="bxt pA">🧪 Práctica: Dataset Churn_modeling.csv</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> MinMaxScaler
+
+df = pd.<span class="fn">read_csv</span>(<span class="st">'Churn_Modeling.csv'</span>)
+
+<span class="cm"># 1. OHE para Geography</span>
+dummies = pd.<span class="fn">get_dummies</span>(df[<span class="st">'Geography'</span>], drop_first=<span class="kw">True</span>)
+df = pd.<span class="fn">concat</span>([df, dummies], axis=<span class="nm">1</span>)
+
+<span class="cm"># 2. Label Encoding para Gender</span>
+df[<span class="st">'Gender'</span>] = df[<span class="st">'Gender'</span>].<span class="fn">map</span>({<span class="st">'Male'</span>:<span class="nm">1</span>, <span class="st">'Female'</span>:<span class="nm">0</span>})
+
+<span class="cm"># 3. Bins de edad (5 categorías)</span>
+df[<span class="st">'age_bin'</span>] = pd.<span class="fn">cut</span>(df[<span class="st">'Age'</span>], bins=<span class="nm">5</span>,
+    labels=[<span class="st">'joven'</span>,<span class="st">'adulto'</span>,<span class="st">'maduro'</span>,<span class="st">'mayor'</span>,<span class="st">'anciano'</span>])
+
+<span class="cm"># 4. Normalizar Balance y Salario</span>
+scaler = <span class="fn">MinMaxScaler</span>()
+df[[<span class="st">'Balance'</span>,<span class="st">'EstimatedSalary'</span>]] = scaler.<span class="fn">fit_transform</span>(
+    df[[<span class="st">'Balance'</span>,<span class="st">'EstimatedSalary'</span>]])</div>
+    </div>
+  </div>
+  <div class="q-block pA"><span class="q-label pA">⚠️ Trampa de la multicolinealidad</span>
+    <div class="q-ans">Con OHE de k categorías debo usar drop_first=True. Sin eso, una columna dummy es combinación lineal de las otras — esto rompe algunos modelos lineales.</div>
+  </div>
+  <div class="q-block pA"><span class="q-label pA">🤔 ¿Qué aprendí?</span>
+    <div class="q-ans">El FE bien hecho puede hacer que un modelo simple supere a uno complejo con datos crudos. Es el diferenciador más importante en competencias de ML.</div>
+  </div>
+</div>
+<div class="pgn">24</div>
+`},
+{p:'pA',n:25,h:`<div class="pA" style="--a:#7b1fa2;--b:#ab47bc;--c:#f3e5f5;--d:#4a148c;--e:#faf5ff;--ac:#ce93d8"><div class="wt pA">⚙️ Feature Engineering · Practica + Pipeline</div><div class="h1 pA">Pipeline con sklearn</div><div class="ub pA"></div><div class="bx pA"><div class="bxt pA">Pipeline completo FE + Modelo</div><div class="code-wrap" style="margin-top:5px"><div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div><div class="code-body"><span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline
+<span class="kw">from</span> sklearn.compose <span class="kw">import</span> ColumnTransformer
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> (StandardScaler,
+    OneHotEncoder, MinMaxScaler)
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+
+num_feats = [<span class="st">'edad'</span>, <span class="st">'balance'</span>, <span class="st">'salary'</span>]
+cat_feats = [<span class="st">'geografia'</span>, <span class="st">'genero'</span>]
+
+preproc = <span class="fn">ColumnTransformer</span>([
+    (<span class="st">'num'</span>, <span class="fn">StandardScaler</span>(), num_feats),
+    (<span class="st">'cat'</span>, <span class="fn">OneHotEncoder</span>(drop=<span class="st">'first'</span>), cat_feats)
+])
+
+pipe = <span class="fn">Pipeline</span>([
+    (<span class="st">'prep'</span>, preproc),
+    (<span class="st">'model'</span>, <span class="fn">RandomForestClassifier</span>(
+        n_estimators=<span class="nm">100</span>, random_state=<span class="nm">42</span>))
+])
+pipe.<span class="fn">fit</span>(X_train, y_train)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"Score: {pipe.score(X_test, y_test):.3f}"</span>)</div></div></div><div class="g2" style="margin-top:5px"><div class="q-block pA"><span class="q-label pA">⚠️ Trampa: multicolinealidad</span><div class="q-ans">Con OHE de k categorias usar drop_first=True. Sin eso, una columna es combinacion lineal de las otras y rompe modelos lineales.</div></div><div class="q-block pA"><span class="q-label pA">🌸 Tecnica favorita</span><div class="q-ans">Interaccion entre features: multiplicar dos columnas puede crear un predictor mas poderoso que ambas por separado. Ej: edad por ingresos = poder adquisitivo.</div></div><div class="q-block pA"><span class="q-label pA">📚 Que aprendi</span><div class="q-ans">Una buena representacion supera a un algoritmo mas complejo con datos crudos. FE es el diferenciador real en competencias de ML.</div></div><div class="q-block pA"><span class="q-label pA">🚀 Aplicacion</span><div class="q-ans">Usar sklearn.Pipeline para garantizar que el preprocesamiento se aplica correctamente tanto en train como en test, sin riesgo de data leakage.</div></div></div></div><div class="pgn">25</div>`},
+{p:'pC',n:26,h:`
+<div class="pC" style="--a:#00695c;--b:#26a69a;--c:#e0f2f1;--d:#004d40;--e:#f0fdf9;--ac:#80cbc4">
+  <div class="stg pC">🤖 TÉCNICAS SUPERVISADAS · Diap. 1–12 🌸</div>
+  <div class="h1 pC">Regresión Lineal y Logística</div>
+  <div class="ub pC"></div>
+  <div class="q-block pC"><span class="q-label pC">🎯 ¿Qué debería lograrse?</span>
+    <div class="q-ans">Comprender y aplicar los principales algoritmos supervisados: cuándo usar cada uno, sus supuestos, ventajas, limitaciones y cómo evaluarlos correctamente con métricas apropiadas.</div>
+  </div>
+  <div class="bx pC"><div class="bxt pC">Regresión Lineal + Logística + Evaluación</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> (LinearRegression,
+    LogisticRegression)
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (accuracy_score, f1_score,
+    roc_auc_score, r2_score)
+
+<span class="cm"># Split estratificado</span>
+X_train, X_test, y_train, y_test = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nm">0.2</span>, random_state=<span class="nm">42</span>, stratify=y)
+
+<span class="cm"># Regresión Lineal → predice valor continuo</span>
+lin = <span class="fn">LinearRegression</span>().<span class="fn">fit</span>(X_train, y_train)
+R2 = lin.<span class="fn">score</span>(X_test, y_test)  <span class="cm"># R² coef. determinación</span>
+
+<span class="cm"># Regresión Logística → predice probabilidad</span>
+<span class="cm"># σ(z) = 1/(1+e⁻ᶻ)  →  [0, 1]</span>
+log = <span class="fn">LogisticRegression</span>().<span class="fn">fit</span>(X_train, y_train)
+pred  = log.<span class="fn">predict</span>(X_test)
+proba = log.<span class="fn">predict_proba</span>(X_test)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"Acc:{accuracy_score(y_test,pred):.3f}"</span>)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"F1: {f1_score(y_test,pred):.3f}"</span>)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"AUC:{roc_auc_score(y_test,proba[:,1]):.3f}"</span>)</div>
+    </div>
+  </div>
+</div>
+<div class="pgn">26</div>
+`},
+{p:'pC',n:27,h:`
+<div class="pC" style="--a:#00695c;--b:#26a69a;--c:#e0f2f1;--d:#004d40;--e:#f0fdf9;--ac:#80cbc4">
+  <div class="wt pC">🤖 ML · SVM + Árboles + RF + Bayes + KNN</div>
+  <div class="h1 pC">Clasificadores Principales</div>
+  <div class="ub pC"></div>
+  <div class="bx pC"><div class="bxt pC">SVM + Decision Tree + Random Forest + NB + KNN</div>
+    <div class="code-wrap" style="margin-top:5px">
+      <div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div>
+      <div class="code-body"><span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+<span class="kw">from</span> sklearn.tree <span class="kw">import</span> DecisionTreeClassifier
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.naive_bayes <span class="kw">import</span> GaussianNB
+<span class="kw">from</span> sklearn.neighbors <span class="kw">import</span> KNeighborsClassifier
+
+modelos = {
+    <span class="st">'SVM'</span>: <span class="fn">SVC</span>(kernel=<span class="st">'rbf'</span>, probability=<span class="kw">True</span>),
+    <span class="st">'DT'</span> : <span class="fn">DecisionTreeClassifier</span>(max_depth=<span class="nm">5</span>),
+    <span class="st">'RF'</span> : <span class="fn">RandomForestClassifier</span>(n_estimators=<span class="nm">100</span>),
+    <span class="st">'NB'</span> : <span class="fn">GaussianNB</span>(),
+    <span class="st">'KNN'</span>: <span class="fn">KNeighborsClassifier</span>(n_neighbors=<span class="nm">5</span>),
+}
+
+<span class="kw">for</span> name, clf <span class="kw">in</span> modelos.<span class="fn">items</span>():
+    clf.<span class="fn">fit</span>(X_train, y_train)
+    f1 = <span class="fn">f1_score</span>(y_test, clf.<span class="fn">predict</span>(X_test))
+    <span class="kw">print</span>(<span class="nm">f</span><span class="st">"{name:4s}: F1={f1:.3f}"</span>)</div>
+    </div>
+  </div>
+  <div class="q-block pC"><span class="q-label pC">⚠️ Problema: dataset desbalanceado</span>
+    <div class="q-ans">Churn: ~80% no-churn, ~20% churn. La accuracy es engañosa. Un modelo que siempre dice "no-churn" tiene 80% accuracy pero 0% recall en la clase important. Solución: usar F1-Score y AUC-ROC + class_weight='balanced'.</div>
+  </div>
+  <div class="q-block pC"><span class="q-label pC">🚀 Aplicación en mi proyecto</span>
+    <div class="q-ans">Comparar todos los modelos con cross-validation (cv=5) y elegir el mejor según F1. Random Forest suele ganar por su resistencia al overfitting.</div>
+  </div>
+</div>
+<div class="pgn">27</div>
+`},
+{p:'pC',n:28,h:`<div class="pC" style="--a:#00695c;--b:#26a69a;--c:#e0f2f1;--d:#004d40;--e:#f0fdf9;--ac:#80cbc4"><div class="wt pC">🤖 ML · Metricas + Evaluacion completa</div><div class="h1 pC">Evaluacion de Modelos</div><div class="ub pC"></div><div class="bx pC"><div class="bxt pC">Metricas y Cross-Validation</div><div class="code-wrap" style="margin-top:5px"><div class="code-header"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span><span class="code-lang">python</span></div><div class="code-body"><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (classification_report,
+    confusion_matrix, roc_auc_score, f1_score)
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> cross_val_score
+
+<span class="cm"># Reporte completo de clasificacion</span>
+<span class="kw">print</span>(<span class="fn">classification_report</span>(y_test, pred))
+
+<span class="cm"># Matriz de confusion</span>
+cm = <span class="fn">confusion_matrix</span>(y_test, pred)
+<span class="kw">print</span>(<span class="st">"TN, FP, FN, TP:"</span>, cm.<span class="fn">ravel</span>())
+
+<span class="cm"># AUC-ROC: mejor metrica para desbalanceados</span>
+auc = <span class="fn">roc_auc_score</span>(y_test, proba[:,<span class="nm">1</span>])
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"AUC-ROC: {auc:.3f}"</span>)
+
+<span class="cm"># Cross-validation 5-fold (mas confiable)</span>
+scores = <span class="fn">cross_val_score</span>(model, X, y,
+    cv=<span class="nm">5</span>, scoring=<span class="st">'f1'</span>)
+<span class="kw">print</span>(<span class="nm">f</span><span class="st">"F1 CV: {scores.mean():.3f} +/- {scores.std():.3f}"</span>)
+
+<span class="cm"># Importancia de features (RF)</span>
+imp = pd.<span class="fn">Series</span>(rf.feature_importances_,
+    index=X.columns).<span class="fn">sort_values</span>(ascending=<span class="kw">False</span>)
+<span class="kw">print</span>(imp.<span class="fn">head</span>(<span class="nm">5</span>))</div></div></div><table class="tb pC" style="margin-top:5px"><thead><tr><th>Metrica</th><th>Cuando usarla</th></tr></thead><tbody><tr><td>Accuracy</td><td>Clases balanceadas (raro en practica)</td></tr><tr><td>F1-Score</td><td>Clases desbalanceadas — la mas usada</td></tr><tr><td>AUC-ROC</td><td>Cuando el umbral de decision varia</td></tr><tr><td>Precision</td><td>Cuando FP es costoso (spam)</td></tr><tr><td>Recall</td><td>Cuando FN es costoso (fraude)</td></tr></tbody></table><div class="q-block pC" style="margin-top:4px"><span class="q-label pC">🌸 Leccion mas importante</span><div class="q-ans">Nunca evaluar el modelo con datos de entrenamiento. Siempre usar cross-validation. Accuracy sola miente en datos desbalanceados.</div></div></div><div class="pgn">28</div>`},
+{p:'pB',n:29,h:`<div class="pB"><div class="wt pB">📓 Hoja de trucos — Cheat Sheet del semestre</div><div class="h1 pB">Resumen final 🌸</div><div class="ub pB"></div><table class="tb pB"><thead><tr><th>Tema</th><th>Concepto clave</th><th>Tool</th></tr></thead><tbody><tr><td>📋 Doc</td><td>10 secciones · reproducible · paralelo</td><td>Markdown</td></tr><tr><td>🔄 Ciclo</td><td>7 etapas iterativas · checklist</td><td>Jupyter</td></tr><tr><td>🐍 Python</td><td>Lista-Tupla-Set-Dict-NumPy-Pandas</td><td>pandas numpy</td></tr><tr><td>🌐 Recol</td><td>urllib + BeautifulSoup a CSV</td><td>bs4 requests</td></tr><tr><td>🗄️ SQL</td><td>PIVOT + Subqueries + SP</td><td>SQL Server</td></tr><tr><td>🧹 Limp</td><td>Nulos-Outliers-Dummies-Merge</td><td>pandas</td></tr><tr><td>❓ Hip</td><td>H0 H1 · p menor 0.05 · t/Chi2/ANOVA</td><td>scipy.stats</td></tr><tr><td>⚙️ FE</td><td>OHE + Scaler + PCA · Pipeline</td><td>sklearn</td></tr><tr><td>🤖 ML</td><td>RF mejor · F1+AUC · cross-val cv5</td><td>sklearn</td></tr></tbody></table><div class="bx pB" style="margin-top:6px"><div class="bxt pB">🌸 Mis mantras de Data Science</div><ul class="bl pB" style="margin-top:7px"><li>Garbage in garbage out — calidad de datos lo es todo</li><li>Split primero, luego escalar — nunca al reves</li><li>Accuracy sola miente — usar F1 en datos desbalanceados</li><li>Documentar en paralelo — no al final del proyecto</li><li>Visualizar antes y despues — de cada transformacion</li><li>El ciclo es iterativo — esta bien volver a limpiar</li><li>El FE marca la diferencia — mas que el algoritmo</li></ul></div><div style="margin-top:6px;text-align:center"><div style="font-family:Caveat,cursive;font-size:1rem;color:#880e4f">Luna Gallego · Colombiana en Bolivia — UCB Santa Cruz 2026</div></div></div><div class="pgn">29</div>`},
+{p:'pB',n:30,h:`
+<div class="pB">
+  <div class="h1 pB" style="font-size:1.5rem;margin-top:10px">🌸 Reflexión Final del Semestre</div>
+  <div class="ub pB"></div>
+  <div class="qt pB">"No importa si soy colombiana estudiando en Bolivia o si el código no compila a la primera. Cada error es datos. Y yo sé procesar datos." — Luna Gallego 🦋</div>
+  <div class="q-block pB" style="margin-top:8px"><span class="q-label pB">🤔 ¿Qué aprendí realmente este semestre?</span>
+    <div class="q-ans">Que la Ciencia de Datos es un proceso metodológico completo, no herramientas sueltas. Que el 80% del trabajo es limpieza y eso está bien. Que un modelo simple con buenos datos supera a uno complejo con datos sucios.</div>
+  </div>
+  <div class="q-block pB"><span class="q-label pB">🏆 Lo más valioso</span>
+    <div class="q-ans">La integración de SQL + Python + Estadística + ML en un único flujo coherente. Antes eran islas separadas; ahora son etapas de un proceso con sentido.</div>
+  </div>
+  <div class="q-block pB"><span class="q-label pB">🎯 ¿Cómo lo aplicaría en un proyecto real?</span>
+    <div class="q-ans">Documentar desde el primer día. Limpiar antes de explorar. Formular hipótesis antes de modelar. Usar F1-Score en problemas desbalanceados. Nunca confiar en la accuracy sola.</div>
+  </div>
+  <div class="q-block pB"><span class="q-label pB">🔮 Próximos pasos</span>
+    <div class="q-ans">Deep Learning, NLP, despliegue de modelos con FastAPI. Y seguir siendo yo — colombiana, curiosa, y decidida a dejar huella en la IA desde Bolivia 🇨🇴❤️🇧🇴</div>
+  </div>
+  <svg viewBox="0 0 340 52" width="100%" height="52" style="display:block;margin-top:8px">
+    <rect x="0" y="0" width="340" height="52" rx="6" fill="#fce4ec"/>
+    <text x="170" y="13" fill="#880e4f" font-family="Caveat" font-size="9" font-weight="700" text-anchor="middle">Progreso del semestre completado 🌸</text>
+    <rect x="5" y="18" width="44" height="20" rx="4" fill="#e91e63" opacity=".85"/><text x="27" y="30" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">📋 Doc</text>
+    <rect x="53" y="18" width="44" height="20" rx="4" fill="#f48fb1" opacity=".85"/><text x="75" y="30" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">🔄 Ciclo</text>
+    <rect x="101" y="18" width="44" height="20" rx="4" fill="#e91e63" opacity=".85"/><text x="123" y="30" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">🐍 Py</text>
+    <rect x="149" y="18" width="44" height="20" rx="4" fill="#f48fb1" opacity=".85"/><text x="171" y="30" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">🌐 Rec</text>
+    <rect x="197" y="18" width="44" height="20" rx="4" fill="#e91e63" opacity=".85"/><text x="219" y="30" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">🗄️ SQL</text>
+    <rect x="245" y="18" width="44" height="20" rx="4" fill="#f48fb1" opacity=".85"/><text x="267" y="30" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">🧹 Limp</text>
+    <rect x="293" y="18" width="44" height="20" rx="4" fill="#880e4f" opacity=".85"/><text x="315" y="30" fill="white" font-family="Caveat" font-size="8" text-anchor="middle">🤖 ML</text>
+    <text x="170" y="48" fill="#880e4f" font-family="Patrick Hand" font-size="7" text-anchor="middle" opacity=".75">✅ ✅ ✅ ✅ ✅ ✅ ✅ — ¡Semestre completo!</text>
+  </svg>
+</div>
+<div class="pgn">30</div>
+`},
+{p:'pB',n:31,h:`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:92%;text-align:center"><div style="font-size:3rem;margin-bottom:10px">🌸🦋✨🌺</div><div style="font-family:Caveat,cursive;font-size:2.1rem;font-weight:700;color:#880e4f;margin-bottom:10px">Fin del semestre 🎉</div><div style="font-family:Patrick Hand,cursive;font-size:.95rem;color:#c2185b;max-width:300px;line-height:1.8;margin-bottom:14px">Gracias Inge por todo!<br>Y quedese con nosotros en todas las materias porfi 🥺💜</div><button onclick="closeBook()" style="background:linear-gradient(135deg,#e91e63,#9c27b0);border:none;color:white;font-family:Caveat,cursive;font-size:1.05rem;font-weight:700;padding:9px 24px;border-radius:50px;cursor:pointer;box-shadow:0 4px 16px rgba(233,30,99,.35);transition:.2s">Cerrar cuaderno 📓</button></div><div class="pgn">31</div>`}
+]; /* END PAGES */
+
+/* ══════════════════════════════════════
+   ENGINE
+══════════════════════════════════════ */
+let cur=0, busy=false;
+const TOTAL=P.length, SPREADS=Math.ceil(TOTAL/2);
+
+// Build spine coils
+const sp=document.getElementById('spine');
+for(let i=0;i<16;i++){const c=document.createElement('div');c.className='coil';sp.appendChild(c);}
+
+function applyPage(el,pg){
+  // Remove old palette classes
+  el.className=el.className.replace(/\bp[A-H]\b/g,'').trim();
+  if(pg){el.classList.add(pg.p);el.innerHTML=pg.h;}
+  else{el.innerHTML='<div class="pgn" style="display:none"></div>';}
+}
+
+function render(){
+  const lp=P[cur], rp=P[cur+1]||null;
+  applyPage(document.getElementById('PL'),lp);
+  applyPage(document.getElementById('PR'),rp);
+  document.getElementById('pctr').textContent=`Págs ${cur+1}–${Math.min(cur+2,TOTAL)} / ${TOTAL}`;
+  document.getElementById('PF').style.width=((Math.floor(cur/2)+1)/SPREADS*100)+'%';
+  document.getElementById('bPrev').disabled=cur===0;
+  document.getElementById('bNext').disabled=cur+2>=TOTAL;
+}
+
+function flip(dir){
+  if(busy)return;
+  if(dir>0&&cur+2>=TOTAL)return;
+  if(dir<0&&cur===0)return;
+  busy=true;
+  const FP=document.getElementById('FP'),FF=document.getElementById('FF'),FB=document.getElementById('FB');
+  if(dir>0){
+    applyPage(FF,P[cur+1]);applyPage(FB,P[cur+2]);
+    FP.className='flip gf';
+    setTimeout(()=>{cur+=2;applyPage(document.getElementById('PL'),P[cur]);applyPage(document.getElementById('PR'),P[cur+1]||null);},350);
+    setTimeout(()=>{FP.className='flip';busy=false;render();},720);
+  }else{
+    applyPage(FF,P[cur]);applyPage(FB,P[cur-1]);
+    FP.className='flip gb';
+    setTimeout(()=>{cur-=2;applyPage(document.getElementById('PL'),P[cur]);applyPage(document.getElementById('PR'),P[cur+1]||null);},350);
+    setTimeout(()=>{FP.className='flip';busy=false;render();},720);
+  }
+}
+
+function openBook(){
+  const cw=document.getElementById('coverWrap');
+  const book=document.getElementById('book');
+  const tb=document.getElementById('topbar');
+  const pb=document.getElementById('progressBar');
+  const ht=document.getElementById('hintText');
+  cw.classList.add('opening');
+  setTimeout(()=>{
+    cw.classList.add('hidden');
+    book.classList.add('visible');
+    tb.style.display='flex';
+    pb.style.display='block';
+    ht.style.display='block';
+    render();
+  },900);
+}
+
+function closeBook(){
+  const cw=document.getElementById('coverWrap');
+  const book=document.getElementById('book');
+  const tb=document.getElementById('topbar');
+  const pb=document.getElementById('progressBar');
+  const ht=document.getElementById('hintText');
+  const bc=document.getElementById('backCover');
+  // If on last spread, show back cover
+  if(cur+2>=TOTAL){
+    book.classList.remove('visible');
+    tb.style.display='none';pb.style.display='none';ht.style.display='none';
+    bc.classList.add('visible');
+    return;
+  }
+  // Otherwise go to cover
+  book.classList.remove('visible');
+  tb.style.display='none';pb.style.display='none';ht.style.display='none';
+  cw.classList.remove('hidden');
+  cw.className='cover-wrap';
+}
+
+// Back cover close
+function closeBook(){
+  const cw=document.getElementById('coverWrap');
+  const book=document.getElementById('book');
+  const tb=document.getElementById('topbar');
+  const pb=document.getElementById('progressBar');
+  const ht=document.getElementById('hintText');
+  const bc=document.getElementById('backCover');
+  book.classList.remove('visible');bc.classList.remove('visible');
+  tb.style.display='none';pb.style.display='none';ht.style.display='none';
+  cw.classList.remove('hidden');
+  cw.className='cover-wrap';
+  cur=0;
+}
+
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('book').classList.contains('visible'))return;
+  if(e.key==='ArrowRight'||e.key==='PageDown')flip(1);
+  if(e.key==='ArrowLeft'||e.key==='PageUp')flip(-1);
+});
+</script>
+</body>
+</html>
