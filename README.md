@@ -55,9 +55,3 @@ El proyecto ha sido implementado utilizando el ecosistema de Data Science de Pyt
 3. **Análisis del Árbol de Decisión:** Determinación y graficado de las variables más importantes que influyen en el modelo para facilitar la interpretabilidad del negocio o tutoría académica.
 
 ---
-
-## 🚀 Instrucciones de Ejecución
-
-1. Clonar este repositorio en tu máquina local:
-   ```bash
-   git clone [https://github.com/TU-USUARIO/PREDICCION-DESERCION-ESTUDIANTIL.git](https://github.com/TU-USUARIO/PREDICCION-DESERCION-ESTUDIANTIL.git)
